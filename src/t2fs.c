@@ -2,11 +2,25 @@
 /**
 */
 #include "t2fs.h"
+#include "apidisk.h"
+#include <stdio.h>
+#include <string.h>
 
 /*-----------------------------------------------------------------------------
 Função:	Informa a identificação dos desenvolvedores do T2FS.
 -----------------------------------------------------------------------------*/
 int identify2 (char *name, int size) {
+
+	char devNames[size] =
+		"Filipe Bachini Lopes - 291401\nMoatan Pedroso Godoy - 246789\n
+		Thalles Fernandes Rezende - 288546\n\0";
+
+	if (strlen(devNames) > size) {
+		strcpy(name, devNames);
+
+		return 0;
+	}
+	// Se chegou aqui deu erro
 	return -1;
 }
 
