@@ -4,6 +4,8 @@
 #include <string.h>
 #include "apidisk.h"
 
+#define SECTOR_SIZE 256
+
 void help() {
 
 	printf ("Testing program - read and write setores do arquivo t2fs_disk.dat\n");

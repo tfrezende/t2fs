@@ -9,16 +9,15 @@
 #
 
 CC=gcc
-BIN_DIR=./bin
 LIB_DIR=./lib
 INC_DIR=./include
+BIN_DIR=./bin
 SRC_DIR=./src
 
-all: fs
-	ar crs $(LIB_DIR)/libt2fs.a $(LIB_DIR)/t2fs.o $(BIN_DIR)/apidisk.o
+all: mainF
 
-fs:
-	$(CC) -c $(SRC_DIR)/t2fs.c -o $(BIN_DIR)/t2fs.o -Wall
+mainF:
+	$(CC) -o mainF mainF.c -L../lib -lt2fs -Wall
 
 clean:
-	rm -rf $(LIB_DIR)/*.a $(BIN_DIR)/*.o $(SRC_DIR)/*~ $(INC_DIR)/*~ *~
+	rm -rf mainF
