@@ -4,6 +4,7 @@
 #include <string.h>
 #include "../include/apidisk.h"
 #include "../include/t2fs.h"
+#include "../include/filesys.h"
 
 void help() {
 

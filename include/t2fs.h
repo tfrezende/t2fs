@@ -5,7 +5,6 @@
 
 #define	SECTOR_SIZE	256
 
-
 #define	INVALID_PTR	-1
 
 typedef int FILE2;
@@ -19,6 +18,7 @@ typedef unsigned int DWORD;
 
 /** Registro com as informa��es da entrada de diret�rio, lida com readdir2 */
 #define MAX_FILE_NAME_SIZE 255
+
 typedef struct {
     char    name[MAX_FILE_NAME_SIZE+1]; /* Nome do arquivo cuja entrada foi lida do disco      */
     BYTE    fileType;                   /* Tipo do arquivo: regular (0x01) ou diret�rio (0x02) */
@@ -26,7 +26,7 @@ typedef struct {
 } DIRENT2;
 
 // Estrutura do superbloco
-typedef struct {
+typedef struct SB {
     WORD version;       // versão do superbloco
     WORD sectorSize;    // tamanho do superbloco
     WORD partTable;     // byte inicial da tabela de partições
@@ -36,41 +36,12 @@ typedef struct {
     char parName[24];   // nome da partição
     int clusterSize;    // tamanho de cada cluster no superbloco
     DWORD	RootDirCluster;	 // Primeiro setor lógico da área de blocos de dados (cluster 0).
+} SUPERBLOCK;
 
-} SUPERBLOCO;
+SUPERBLOCK superblock;  // variável global do superbloco utilizado
 
-SUPERBLOCO superblock;  // variável global do superbloco utilizado
-
-// Estrutura de um arquivo
-typedef struct {
-    FILE2 file;
-    int currPointer;
-    int clusterNo;
-    int clusterDir;
-} DISK_FILE;
-
-DISK_FILE openFiles[10]; // vetor global de arquivos abertos
-
-// Estrutura de um diretório
-typedef struct {
-    DIR2 handle;
-    int noReads;
-    int clusterDir;
-    DIRENT2 directory;
-} DISK_DIR;
-
-DISK_DIR openDirectories[10]; // vetor global de diretórios abertos
-
-// Struct que define o caminho
-typedef struct {
-    char* absolute;
-    int clusterNo;
-} CURRENT_PATH;
-
-CURRENT_PATH currentPath; // variável global de caminho
 
 #pragma pack(pop)
-
 
 
 /*-----------------------------------------------------------------------------
@@ -337,11 +308,5 @@ Sa�da:	Se a opera��o foi realizada com sucesso, a fun��o retorna "0" (
 	Em caso de erro, ser� retornado um valor diferente de zero.
 -----------------------------------------------------------------------------*/
 int ln2(char *linkname, char *filename);
-
-
-
-
-
-
 
 #endif

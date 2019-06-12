@@ -2,6 +2,7 @@
 /**
 */
 #include "../include/t2fs.h"
+#include "../include/filesys.h"
 #include "../include/apidisk.h"
 #include <stdio.h>
 #include <string.h>
