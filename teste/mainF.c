@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 
-		if (strcmp(cmd,"e")==0) {
+		if (strcmp(cmd,"e")==0) {			// TESTE DE ESCRITA, SÓ MUDAR OS VALORES DE TESTE
 
 			unsigned char teste[SECTOR_SIZE] = {32305};
 
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
-		if (strcmp(cmd,"l")==0) {
+		if (strcmp(cmd,"l")==0) {					// TESTE FORMAT, PODE USAR QUALQUER FUNÇÃO AQUI
 
 			int error = format2(8);
 
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
-		if (strcmp(cmd,"t")==0) {
+		if (strcmp(cmd,"t")==0) {				// TESTE DE LEITURA, MUDAR O VALOR DE SECTOR QUE QUER LER
 
 			unsigned char testeleitura[SECTOR_SIZE];
 

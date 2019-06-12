@@ -11,6 +11,10 @@ Função:	Informa a identificação dos desenvolvedores do T2FS.
 -----------------------------------------------------------------------------*/
 int identify2 (char *name, int size) {
 
+	strncpy (name,"Filipe Bachini Lopes - 291401\nMoatan Pedroso Godoy - 246789\nThalles Fernandes Rezende - 288546\n", size);
+	return 0;
+
+/*
 	char devNames[size] =
 		"Filipe Bachini Lopes - 291401\nMoatan Pedroso Godoy - 246789\nThalles Fernandes Rezende - 288546\n\0";
 
@@ -21,6 +25,7 @@ int identify2 (char *name, int size) {
 	}
 	// Se chegou aqui deu erro
 	return -1;
+*/
 }
 
 /*-----------------------------------------------------------------------------
@@ -30,6 +35,7 @@ Função:	Formata logicamente o disco virtual t2fs_disk.dat para o sistema de
 -----------------------------------------------------------------------------*/
 int format2 (int sectors_per_block) {
 
+	int i;
 	BYTE buffer[SECTOR_SIZE];	// buffer para leitura do setor
 
 	// Lẽ o MBR, retorna erro se não conseguir
@@ -37,8 +43,11 @@ int format2 (int sectors_per_block) {
 		return -1;
 	};
 
+	superblock.version = buffer[0];
 	superblock.clusterSize = SECTOR_SIZE * sectors_per_block;
 	// montar o superbloco aqui
+
+	printf("%d\n", superblock.version);
 
 	// Inicialização do vetor de arquivos abertos
 	for (i = 0; i < 10; i++) {
@@ -48,12 +57,12 @@ int format2 (int sectors_per_block) {
             openDirectories[i].handle = -1;
             openDirectories[i].noReads = -1;
             openDirectories[i].clusterDir = -1;
-            openDirectories[i].directory = setNullDirent(); // falta definir esta função
+          //  openDirectories[i].directory = setNullDirent(); // falta definir esta função
     }
 
 	currentPath.absolute = malloc(sizeof(char)*5); // Valor inicial arbitrario
     strcpy(currentPath.absolute, "/");
-    currentPath.clusterNo = superBlock.RootDirCluster; // falta definir isso aqui na struct
+    currentPath.clusterNo = 5; 					// Ainda não definido, numero puramente cabalistico sem significado
 }
 
 /*-----------------------------------------------------------------------------

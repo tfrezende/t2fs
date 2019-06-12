@@ -35,6 +35,7 @@ typedef struct {
     DWORD pLastBlock;   // endereço do último bloco da partição
     char parName[24];   // nome da partição
     int clusterSize;    // tamanho de cada cluster no superbloco
+    DWORD	RootDirCluster;	 // Primeiro setor lógico da área de blocos de dados (cluster 0).
 
 } SUPERBLOCO;
 
