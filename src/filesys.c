@@ -35,3 +35,50 @@ unsigned char* dwordToLtlEnd(DWORD entry) {
 
     return buffer;
 }
+
+int FATinit () {
+
+  int i;
+  BYTE buffer[SECTOR_SIZE];	// buffer para leitura do setor
+
+
+  // Lẽ o MBR, retorna erro se não conseguir
+  if (read_sector(0, buffer) != 0) {
+    return -1;
+  };
+
+  superblock.version = buffer[0];
+  superblock.clusterSize = SECTOR_SIZE * sectors_per_block;
+  // montar o superbloco aqui
+
+  printf("%d\n", superblock.version);
+
+  // Inicialização do vetor de arquivos abertos
+  for (i = 0; i < 10; i++) {
+            openFiles[i].file = -1;
+            openFiles[i].currPointer = -1;
+            openFiles[i].clusterNo = -1;
+            openDirectories[i].handle = -1;
+            openDirectories[i].noReads = -1;
+            openDirectories[i].clusterDir = -1;
+          //  openDirectories[i].directory = setNullDirent(); // falta definir esta função
+    }
+
+  currentPath.absolute = malloc(sizeof(char)*5); // Valor inicial arbitrario
+    strcpy(currentPath.absolute, "/");
+    currentPath.clusterNo = 5; 					// Ainda não definido, numero puramente cabalistico sem significado
+
+}
+
+int FATformat (int sectors_per_block) {
+
+
+
+      FATinit();
+
+      
+
+
+
+
+}

@@ -3,6 +3,8 @@
 
 #include "t2fs.h"
 
+int fat_init = 0;                   // 0 se a FAT não foi inicializada, 1 se sim
+
 DWORD convertToDword(unsigned char* buffer);
 
 WORD convertToWord(unsigned char* buffer);
@@ -10,6 +12,10 @@ WORD convertToWord(unsigned char* buffer);
 unsigned char* wordToLtlEnd(WORD entry);
 
 unsigned char* dwordToLtlEnd(DWORD entry);
+
+int FATinit();
+
+int FATformat (int sectors_per_block);
 
 typedef struct diskf {
     FILE2 file;
