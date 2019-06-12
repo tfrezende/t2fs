@@ -51,6 +51,8 @@ Função:	Função usada para criar um novo arquivo no disco e abrí-lo,
 		assumirá um tamanho de zero bytes.
 -----------------------------------------------------------------------------*/
 FILE2 create2 (char *filename) {
+	if fat_init = 0
+		FATinit()
 	return -1;
 }
 
