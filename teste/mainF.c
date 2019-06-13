@@ -92,8 +92,12 @@ int main(int argc, char *argv[])
 
 		if (strcmp(cmd,"l")==0) {					// TESTE FORMAT, PODE USAR QUALQUER FUNÇÃO AQUI
 
-			int error = format2(8);
+			char *name;
+			int size = 100;
 
+			int error = identify2(name, size);
+			puts(name);
+			
 			if (error) {
 				printf ("Deu pau");
 				continue;

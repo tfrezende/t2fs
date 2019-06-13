@@ -7,6 +7,9 @@
 #include "../include/t2fs.h"
 
 
+//      LEMBRAR QUE VAMOS USAR A FAT32 !!!!
+
+int init_FAT = 0;               // 0 se a FAT não foi inicializada, 1 se sim
 
 DWORD convertToDword(unsigned char* buffer) {
     return (DWORD) ((DWORD)buffer[0] | (DWORD)buffer[1] << 8 |(DWORD)buffer[2] << 16 |(DWORD)buffer[3] << 24 );
@@ -36,22 +39,11 @@ unsigned char* dwordToLtlEnd(DWORD entry) {
     return buffer;
 }
 
-int FATinit () {
+int FATinit () {            // Pode ser que o arquivo já esteja formatado, só iniciar as structs auxiliares e ler a FAT
 
   int i;
-  BYTE buffer[SECTOR_SIZE];	// buffer para leitura do setor
 
-
-  // Lẽ o MBR, retorna erro se não conseguir
-  if (read_sector(0, buffer) != 0) {
-    return -1;
-  };
-
-  superblock.version = buffer[0];
-  superblock.clusterSize = SECTOR_SIZE * sectors_per_block;
-  // montar o superbloco aqui
-
-  printf("%d\n", superblock.version);
+  // Ler a FAT existente
 
   // Inicialização do vetor de arquivos abertos
   for (i = 0; i < 10; i++) {
@@ -65,20 +57,33 @@ int FATinit () {
     }
 
   currentPath.absolute = malloc(sizeof(char)*5); // Valor inicial arbitrario
-    strcpy(currentPath.absolute, "/");
-    currentPath.clusterNo = 5; 					// Ainda não definido, numero puramente cabalistico sem significado
+  strcpy(currentPath.absolute, "/");
+  currentPath.clusterNo = 5; 					// Ainda não definido, numero puramente cabalistico sem significado (Definir posição Diretório Raiz)
+
+  return 0;
 
 }
 
-int FATformat (int sectors_per_block) {
+int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e faz a FAT
+
+      BYTE buffer[SECTOR_SIZE];	// buffer para leitura do setor
+
+
+      // Lẽ o MBR, retorna erro se não conseguir
+      if (read_sector(0, buffer) != 0) {
+        return -1;
+      };
+
+      superblock.version = buffer[0];
+      superblock.clusterSize = SECTOR_SIZE * sectors_per_block;
+      // montar o superbloco aqui
 
 
 
       FATinit();
 
-      
 
-
+      return 0;
 
 
 }

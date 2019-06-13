@@ -3,8 +3,6 @@
 
 #include "t2fs.h"
 
-int fat_init = 0;                   // 0 se a FAT não foi inicializada, 1 se sim
-
 DWORD convertToDword(unsigned char* buffer);
 
 WORD convertToWord(unsigned char* buffer);
