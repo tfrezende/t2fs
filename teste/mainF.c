@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
-		if (strcmp(cmd,"d")==0) {
+		if (strcmp(cmd,"d")==0) {							// FUNÇÃO DO CECHIN, TÁ COM UNS PROBLEMAS, DEIXA AÍ
 			// comando d (display)
 			unsigned char buffer[SECTOR_SIZE];
 			char *p1 = strtok(NULL, " ");
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 
-		if (strcmp(cmd,"e")==0) {			// TESTE DE ESCRITA, SÓ MUDAR OS VALORES DE TESTE
+		if (strcmp(cmd,"e")==0) {			// TESTE DE ESCRITA, SÓ MUDAR OS VALORES DE TESTE E O VALOR DO write_sector
 
 			unsigned char teste[SECTOR_SIZE] = {32305};
 
@@ -90,14 +90,14 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
-		if (strcmp(cmd,"l")==0) {					// TESTE FORMAT, PODE USAR QUALQUER FUNÇÃO AQUI
+		if (strcmp(cmd,"l")==0) {					// TESTE EM GERAL, PODE USAR QUALQUER FUNÇÃO AQUI
 
 			char *name;
 			int size = 100;
 
 			int error = identify2(name, size);
 			puts(name);
-			
+
 			if (error) {
 				printf ("Deu pau");
 				continue;
