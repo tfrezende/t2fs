@@ -28,14 +28,14 @@ typedef struct {
 // Estrutura do superbloco
 typedef struct SB {
     WORD version;       // versão do superbloco
-    WORD sectorSize;    // tamanho do superbloco
+    WORD sectorSize;    // tamanho do setor
     WORD partTable;     // byte inicial da tabela de partições
     WORD numPartitions; // número de partições no disco
     DWORD pFirstBlock;  // endereço do primeiro bloco da partição
     DWORD pLastBlock;   // endereço do último bloco da partição
-    char parName[24];   // nome da partição
+    char partName[24];   // nome da partição
     int clusterSize;    // tamanho de cada cluster no superbloco
-    DWORD	RootDirCluster;	 // Primeiro setor lógico da área de blocos de dados (cluster 0).
+    int	RootDirCluster;	 // Primeiro setor lógico da área de blocos de dados (cluster 0).
 } SUPERBLOCK;
 
 SUPERBLOCK superblock;  // variável global do superbloco utilizado
