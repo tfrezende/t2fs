@@ -86,10 +86,11 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
       superblock.clusterSize = SECTOR_SIZE * sectors_per_block;
       superblock.RootDirCluster = 1;    // root fixo no setor 0
 
-      nClusters = (superblock.pLastBlock - superblock.pFirstBlock)/superblock.sectorSize;
+      nClusters = ((superblock.pLastBlock - superblock.pFirstBlock) * SECTOR_SIZE)/superblock.clusterSize;
 
-      printf("%d", nClusters);
-      
+      FATnext = malloc(sizeof(int)*nClusters);
+      FATbitmap = malloc(sizeof(int)*nClusters);
+
       FATinit();
 
       return 0;

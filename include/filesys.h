@@ -17,6 +17,10 @@ int FATinit();
 
 int FATformat (int sectors_per_block);
 
+int *FATnext;
+
+int *FATbitmap;
+
 typedef struct diskf {
     FILE2 file;
     int currPointer;
