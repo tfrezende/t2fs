@@ -44,7 +44,6 @@ int FATinit () {            // Pode ser que o arquivo já esteja formatado, só 
   int i;
 
   if (init_FAT == 0) {
-      // Ler a FAT existente
 
       // Inicialização do vetor de arquivos abertos
       for (i = 0; i < 10; i++) {
@@ -54,12 +53,12 @@ int FATinit () {            // Pode ser que o arquivo já esteja formatado, só 
                 openDirectories[i].handle = -1;
                 openDirectories[i].noReads = -1;
                 openDirectories[i].clusterDir = -1;
-              //  openDirectories[i].directory = setNullDirent(); // falta definir esta função
+                openDirectories[i].directory = setNullDirent(); // falta definir esta função
         }
 
       currentPath.absolute = malloc(sizeof(char)*5); // Valor inicial arbitrario
       strcpy(currentPath.absolute, "/");
-      currentPath.clusterNo = 5; 					// Ainda não definido, numero puramente cabalistico sem significado (Definir posição Diretório Raiz)
+      currentPath.clusterNo = 1;  // Caminho absoluto fixado no cluster 1
       init_FAT = 1;
   }
 
@@ -70,7 +69,7 @@ int FATinit () {            // Pode ser que o arquivo já esteja formatado, só 
 int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e faz a FAT
 
       BYTE buffer[SECTOR_SIZE];	// buffer para leitura do setor
-
+      int nClusters;
 
       // Lẽ o MBR, retorna erro se não conseguir
       if (read_sector(0, buffer) != 0) {
@@ -85,24 +84,25 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
       superblock.pLastBlock = convertToDword(buffer + 12);   // endereço do último bloco da partição
       memcpy(superblock.partName, buffer + 16, 8);
       superblock.clusterSize = SECTOR_SIZE * sectors_per_block;
-      superblock.RootDirCluster = 0;    // root fixo no setor 0
-      // montar o superbloco aqui
+      superblock.RootDirCluster = 1;    // root fixo no setor 0
 
+      nClusters = (superblock.pLastBlock - superblock.pFirstBlock)/superblock.sectorSize;
 
-      printf("%d\n", superblock.version);
-      printf("%d\n", superblock.sectorSize);
-      printf("%d\n", superblock.partTable);
-      printf("%d\n", superblock.numPartitions);
-      printf("%d\n", superblock.pFirstBlock);
-      printf("%d\n", superblock.pLastBlock);
-      puts(superblock.partName);
-      printf("%d\n", superblock.clusterSize);
-      printf("%d\n", superblock.RootDirCluster);
-
-//      FATinit();
-
+      printf("%d", nClusters);
+      
+      FATinit();
 
       return 0;
 
 
+}
+// Função para apagar um diretório
+DIRENT2 setNullDirent()
+{
+    DIRENT2 dir;
+    strcpy(dir.name,"");
+    dir.fileType = (DWORD)6; // valor inválido, lixo
+    dir.fileSize = (DWORD)0;
+
+    return dir;
 }

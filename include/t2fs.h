@@ -21,7 +21,7 @@ typedef unsigned int DWORD;
 
 typedef struct {
     char    name[MAX_FILE_NAME_SIZE+1]; /* Nome do arquivo cuja entrada foi lida do disco      */
-    BYTE    fileType;                   /* Tipo do arquivo: regular (0x01) ou diret�rio (0x02) */
+    BYTE    fileType;                   /* Tipo do arquivo: regular (0x01) ou diret�rio (0x02) ou link (0x03) */
     DWORD   fileSize;                   /* Numero de bytes do arquivo                          */
 } DIRENT2;
 
