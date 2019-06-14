@@ -112,11 +112,12 @@ DIRENT2 setNullDirent()
 int readCluster(int clusterNo, unsigned char* buffer) {
     int i = 0;
     unsigned int sectorToRead;
-    unsigned int sector = superBlock.pFirstBlock + superBlock.SectorsPerCluster*clusterNo;
+    unsigned int sector = superblock.pFirstBlock + superblock.SectorsPerCluster*clusterNo;
 
-    for(sectorToRead = sector; sectorToRead < (sector + superBlock.SectorsPerCluster); sectorToRead++) {
+    for(sectorToRead = sector; sectorToRead < (sector + superblock.SectorsPerCluster); sectorToRead++) {
+        printf("Setor : %d\n", sectorToRead);
         read_sector(sectorToRead,buffer + i);
-        i += superblock.clusterSize;
+        i += superblock.sectorSize;
     }
     return 0;
 }
@@ -125,12 +126,8 @@ int writeCluster(int clusterNo, unsigned char* buffer, int position, int size) {
     int j;
     int k = 0;
     unsigned int sectorToWrite;
-    unsigned int sector = superBlock.pFirstBlock + superBlock.SectorsPerCluster*clusterNo;
-    unsigned char* newBuffer = malloc(sizeof(unsigned char)*SECTOR_SIZE*superBlock.SectorsPerCluster);
-
-    if (size > SECTOR_SIZE*superBlock.SectorsPerCluster || (position + size) > SECTOR_SIZE*superBlock.SectorsPerCluster) {
-        return -1;
-    }
+    unsigned int sector = superblock.pFirstBlock + superblock.SectorsPerCluster*clusterNo;
+    unsigned char newBuffer [superblock.sectorSize * superblock.SectorsPerCluster];
 
     readCluster(clusterNo, newBuffer);
 
@@ -138,10 +135,12 @@ int writeCluster(int clusterNo, unsigned char* buffer, int position, int size) {
         newBuffer[j] = buffer[j - position];
     }
 
-    for(sectorToWrite = sector; sectorToWrite < (sector + superBlock.SectorsPerCluster); sectorToWrite++) {
-        write_sector(sectorToWrite, newBuffer + k);
-        k += 256;
+    for(sectorToWrite = sector; sectorToWrite < (sector + superblock.SectorsPerCluster); sectorToWrite++) {
+          write_sector(sectorToWrite, buffer + k);
+          k += 256;
     }
-    free(newBuffer);
-    return position + size;
+
+
+//    free(newBuffer);
+    return 0;
 }
