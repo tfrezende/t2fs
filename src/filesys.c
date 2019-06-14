@@ -60,6 +60,7 @@ int FATinit () {            // Pode ser que o arquivo já esteja formatado, só 
       strcpy(currentPath.absolute, "/");
       currentPath.clusterNo = 1;  // Caminho absoluto fixado no cluster 1
       init_FAT = 1;
+
   }
 
   return 0;
@@ -70,6 +71,7 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
 
       BYTE buffer[SECTOR_SIZE];	// buffer para leitura do setor
       int nClusters;
+      int i;
 
       // Lẽ o MBR, retorna erro se não conseguir
       if (read_sector(0, buffer) != 0) {
@@ -92,12 +94,22 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
       FATnext = malloc(sizeof(int)*nClusters);
       FATbitmap = malloc(sizeof(int)*nClusters);
 
+      FATnext[0] = 0;
+      FATbitmap[0] = -1;
+
+      for(i = 1, i < nClusters, i++) {
+          FATnext[i] = -1;
+          FATbitmap[i] = 0;       
+      }
+
       FATinit();
 
       return 0;
 
 
 }
+
+
 // Função para apagar um diretório
 DIRENT2 setNullDirent()
 {
