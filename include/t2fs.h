@@ -36,6 +36,7 @@ typedef struct SB {
     char partName[24];   // nome da partição
     int clusterSize;    // tamanho de cada cluster no superbloco
     int	RootDirCluster;	 // Primeiro setor lógico da área de blocos de dados (cluster 0).
+    int SectorsPerCluster;
 } SUPERBLOCK;
 
 SUPERBLOCK superblock;  // variável global do superbloco utilizado

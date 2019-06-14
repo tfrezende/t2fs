@@ -85,6 +85,7 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
       memcpy(superblock.partName, buffer + 16, 8);
       superblock.clusterSize = SECTOR_SIZE * sectors_per_block;
       superblock.RootDirCluster = 1;    // root fixo no setor 0
+      superblock.SectorsPerCluster = sectors_per_block;
 
       nClusters = ((superblock.pLastBlock - superblock.pFirstBlock) * SECTOR_SIZE)/superblock.clusterSize;
 
@@ -106,4 +107,41 @@ DIRENT2 setNullDirent()
     dir.fileSize = (DWORD)0;
 
     return dir;
+}
+
+int readCluster(int clusterNo, unsigned char* buffer) {
+    int i = 0;
+    unsigned int sectorToRead;
+    unsigned int sector = superBlock.pFirstBlock + superBlock.SectorsPerCluster*clusterNo;
+
+    for(sectorToRead = sector; sectorToRead < (sector + superBlock.SectorsPerCluster); sectorToRead++) {
+        read_sector(sectorToRead,buffer + i);
+        i += superblock.clusterSize;
+    }
+    return 0;
+}
+
+int writeCluster(int clusterNo, unsigned char* buffer, int position, int size) {
+    int j;
+    int k = 0;
+    unsigned int sectorToWrite;
+    unsigned int sector = superBlock.pFirstBlock + superBlock.SectorsPerCluster*clusterNo;
+    unsigned char* newBuffer = malloc(sizeof(unsigned char)*SECTOR_SIZE*superBlock.SectorsPerCluster);
+
+    if (size > SECTOR_SIZE*superBlock.SectorsPerCluster || (position + size) > SECTOR_SIZE*superBlock.SectorsPerCluster) {
+        return -1;
+    }
+
+    readCluster(clusterNo, newBuffer);
+
+    for(j = position; j < size + position; j++){
+        newBuffer[j] = buffer[j - position];
+    }
+
+    for(sectorToWrite = sector; sectorToWrite < (sector + superBlock.SectorsPerCluster); sectorToWrite++) {
+        write_sector(sectorToWrite, newBuffer + k);
+        k += 256;
+    }
+    free(newBuffer);
+    return position + size;
 }
