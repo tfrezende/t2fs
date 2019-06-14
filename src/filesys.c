@@ -43,7 +43,7 @@ int FATinit () {            // Pode ser que o arquivo já esteja formatado, só 
 
   int i;
 
-  if (init_FAT = 0) {
+  if (init_FAT == 0) {
       // Ler a FAT existente
 
       // Inicialização do vetor de arquivos abertos
@@ -83,14 +83,23 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
       superblock.numPartitions = convertToWord(buffer + 6); // número de partições no disco
       superblock.pFirstBlock = convertToDword(buffer + 8);  // endereço do primeiro bloco da partição
       superblock.pLastBlock = convertToDword(buffer + 12);   // endereço do último bloco da partição
-      memcpy(superblock.parName, buffer + 16, 4);
+      memcpy(superblock.partName, buffer + 16, 8);
       superblock.clusterSize = SECTOR_SIZE * sectors_per_block;
       superblock.RootDirCluster = 0;    // root fixo no setor 0
       // montar o superbloco aqui
 
 
+      printf("%d\n", superblock.version);
+      printf("%d\n", superblock.sectorSize);
+      printf("%d\n", superblock.partTable);
+      printf("%d\n", superblock.numPartitions);
+      printf("%d\n", superblock.pFirstBlock);
+      printf("%d\n", superblock.pLastBlock);
+      puts(superblock.partName);
+      printf("%d\n", superblock.clusterSize);
+      printf("%d\n", superblock.RootDirCluster);
 
-      FATinit();
+//      FATinit();
 
 
       return 0;

@@ -33,9 +33,9 @@ Função:	Formata logicamente o disco virtual t2fs_disk.dat para o sistema de
 -----------------------------------------------------------------------------*/
 int format2 (int sectors_per_block) {
 
-	if (sectors_per_block != (2 | 16 | 32 | 64 | 128))
-		return -1;
-	else
+//	if (sectors_per_block != (2 || 16 || 32 || 64 || 128))
+//		return -1;
+//	else
 		FATformat(sectors_per_block);
 		return 0;
 

@@ -92,11 +92,11 @@ int main(int argc, char *argv[])
 
 		if (strcmp(cmd,"l")==0) {					// TESTE EM GERAL, PODE USAR QUALQUER FUNÇÃO AQUI
 
-			char *name = NULL;
-			int size = 100;
+//			char *name = NULL;
+//			int size = 100;
 
-			int error = identify2(name, size);
-			puts(name);
+			int error = format2(16);
+//			puts(name);
 
 			if (error) {
 				printf ("Deu pau");
