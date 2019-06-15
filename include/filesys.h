@@ -33,6 +33,8 @@ int writeCluster(int clusterNo, unsigned char* buffer, int position, int size);
 
 int FindFreeCluster ();
 
+int changeDir(char * path);
+
 typedef struct diskf {
     FILE2 file;
     int currPointer;

@@ -124,14 +124,23 @@ int rmdir2 (char *pathname) {
 Função:	Função usada para alterar o CP (current path)
 -----------------------------------------------------------------------------*/
 int chdir2 (char *pathname) {
-	return -1;
+	if(strcmp(pathname,"") ==0)
+		return -1;
+	return changeDir(pathname);
 }
 
 /*-----------------------------------------------------------------------------
 Função:	Função usada para obter o caminho do diretório corrente.
 -----------------------------------------------------------------------------*/
 int getcwd2 (char *pathname, int size) {
-	return -1;
+	if((strlen(currentPath.absolute) + 1) > size){
+		return -1;
+	}
+	else{
+		memset(pathname,'\0',size);
+		strcpy(pathname, currentPath.absolute);
+		return 0;
+	}
 }
 
 /*-----------------------------------------------------------------------------

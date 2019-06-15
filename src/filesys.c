@@ -210,7 +210,82 @@ int FindFreeCluster (){
 
 }
 
+int changeDir(char * path){
+/*
+    char * absolute;
+    char * firstOut;
+    char * secondOut;
+    int clusterNewPath;
+    char *linkOutput;
 
+//Variaveis para a validação do tipo:
+    int i;
+    int isDir = 0;
+    int clusterByteSize = sizeof(unsigned char)*SECTOR_SIZE*superBlock.SectorsPerCluster;
+    unsigned char* buffer = malloc(clusterByteSize);
+    int clusterOfDir;
+
+    if(strlen(path) == 0){ //Se a string for vazia n altera o lugar
+        return 0;
+    }
+    if(strcmp(path,"/") == 0){ // "/"" vai para a RAIZ
+        currentPath.clusterNo = superBlock.RootDirCluster;
+        free(currentPath.absolute);
+        currentPath.absolute = malloc(sizeof(char)*2);
+        //memset(currentPath.absolute, '/0', 2);
+        strcpy(currentPath.absolute,"/");
+        return 0;
+    }
+    //faço depois da comparação do path com vazio e "/", pq se nao tava dando segmentation..
+
+        if(link(path, &linkOutput) == -1)
+            return -1;
+
+    if(toAbsolutePath(linkOutput, currentPath.absolute, &absolute) == -1){
+
+        free(absolute);
+        return -1;
+    }
+
+    if(separatePath(absolute, &firstOut, &secondOut) == -1){
+        return -2;
+    }
+
+    clusterOfDir = pathToCluster(firstOut);
+
+    readCluster(clusterOfDir, buffer);
+    if(strlen(secondOut) > 0){
+        for(i = 0; i < clusterByteSize; i+= sizeof(struct t2fs_record)) {
+            if ( (strcmp((char *)buffer+i+1, secondOut) == 0) && (((BYTE) buffer[i]) == TYPEVAL_DIRETORIO) && !isDir ) {
+                isDir = 4;
+            }
+        }
+        if(isDir == 0){
+            return -3;
+        }
+    }
+//se o absoluto do atual com o path for /, então é pq é o ROOT.
+    if(strlen(absolute)== 1 && absolute[0] == '/'){
+        clusterNewPath = superBlock.RootDirCluster;
+    }
+    else{
+        clusterNewPath = pathToCluster(absolute);
+    }
+
+    if(clusterNewPath == -1){//se o pathname n existir
+        free(absolute);
+        return -5;
+    }
+
+    free(currentPath.absolute);
+    currentPath.absolute = malloc(sizeof(char)*(strlen(absolute)+1));
+    strcpy(currentPath.absolute, absolute);
+    currentPath.clusterNo = clusterNewPath;
+
+    free(absolute);
+*/
+    return 0;
+}
 
 /*
 //  FUNÇÃO QUE CONSEGUE TRANSFORMAR UM VETOR DE INT EM CHAR SEM PROBLEMAS
