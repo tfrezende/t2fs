@@ -59,6 +59,9 @@ int FATinit () {            // Pode ser que o arquivo já esteja formatado, só 
       currentPath.absolute = malloc(sizeof(char)*5); // Valor inicial arbitrario
       strcpy(currentPath.absolute, "/");
       currentPath.clusterNo = 1;  // Caminho absoluto fixado no cluster 1
+
+      FATread();
+      
       init_FAT = 1;
 
   }
