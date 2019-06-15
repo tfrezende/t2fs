@@ -97,23 +97,25 @@ int main(int argc, char *argv[])
 		 	unsigned char *bufferS;
 			int i;
 
-		 	error = FATformat(16);
+		 	error = FATformat(89);
 
 			for(i = 1; i < nClusters; i++) {
 					FATbitmap[i] = '1';
 			}
 
+			if (error) {
+				printf ("Deu pau");
+				continue;
+			}
+
 			FATbitmap[55] = '0';
-			
+
 			FATwrite();
 
 
 			printf("Valor livre : %d\n", FindFreeCluster());
 
-			if (error) {
-				printf ("Deu pau");
-				continue;
-			}
+
 
 			printf("Parece que foi\n");
 
