@@ -159,12 +159,10 @@ int FATwrite(){
     int  i , k;
 
     unsigned char *buffer = malloc(4*sizeof(FATnext) + sizeof(FATbitmap));
-    strcpy(buffer, "");
 
-
-    for(i = 0, k = 0; i < nClusters; i++, k += 4){
-        strcpy((buffer + k),dwordToLtlEnd(FATnext[i]));
-        puts(buffer);
+    for(i = 0; i < nClusters; i++){
+        buffer[i] = dwordToLtlEnd(FATnext[i]);
+        printf("%d\n", dwordToLtlEnd(FATnext[i]));
     }
 
     strcat(buffer, FATbitmap);
