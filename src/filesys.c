@@ -93,7 +93,7 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
       FATnext = malloc(sizeof(int)*nClusters);
       FATbitmap = malloc(sizeof(char)*nClusters);
 
-      FATnext[0] = 5;                 // Cluster 0 reservado para as informações de Próxima e Livre
+      FATnext[0] = 0;                 // Cluster 0 reservado para as informações de Próxima e Livre
       FATbitmap[0] = '5';
 
       for(i = 1; i < nClusters; i++) {
@@ -125,7 +125,6 @@ int readCluster(int clusterNo, unsigned char* buffer) {
     unsigned int sector = superblock.pFirstBlock + superblock.SectorsPerCluster*clusterNo;
 
     for(sectorToRead = sector; sectorToRead < (sector + superblock.SectorsPerCluster); sectorToRead++) {
-        printf("Setor : %d\n", sectorToRead);
         read_sector(sectorToRead,buffer + i);
         i += superblock.sectorSize;
     }
@@ -141,12 +140,14 @@ int writeCluster(int clusterNo, unsigned char* buffer, int position, int size) {
 
     readCluster(clusterNo, newBuffer);
 
+
     for(j = position; j < size + position; j++){
         newBuffer[j] = buffer[j - position];
     }
 
+
     for(sectorToWrite = sector; sectorToWrite < (sector + superblock.SectorsPerCluster); sectorToWrite++) {
-          write_sector(sectorToWrite, buffer + k);
+          write_sector(sectorToWrite, newBuffer + k);
           k += 256;
     }
 
@@ -156,72 +157,38 @@ int writeCluster(int clusterNo, unsigned char* buffer, int position, int size) {
 
 int FATwrite(){
 
-    unsigned char *buffer = malloc(4*sizeof(FATnext) + sizeof(FATbitmap));
+    unsigned char *buffer = malloc(4*sizeof(int));
+    unsigned char *aux = malloc(sizeof(char)*nClusters);
+    int i, k;
 
-    iarrtostrarrinc(FATnext, buffer);                       // Até funciona, problema é que fica tudo CHAR
-                                                            // fica até o negativo em char, tem que ver melhor
-    strcat(buffer, FATbitmap);                              // Acho que no fim é o unico jeito e fodac
-                                                            // Tem que testar a leitura dessa merda
-    writeCluster(0, buffer, 0, superblock.clusterSize);  
-}
-
-//    free(buffer);
-
-
-
-/*  FUNÇÃO QUE CONSEGUE TRANNSFORMAR UM VETOR DE INT EM CHAR SEM PROBLEMAS
-unsigned char buffer[500];
-
-unsigned char** makeStrArr(const int* vals, const int nelems)
-{
-    unsigned char** strarr = (unsigned char**)malloc(sizeof(unsigned char*) * nelems);
-    int i;
-    unsigned char buf[128];
-
-    for (i = 0; i < nelems; i++)
-    {
-        strarr[i] = (unsigned char*)malloc(sprintf(buf, "%d", vals[i]) + 1);
-        strcpy(strarr[i], buf);
-    }
-    return strarr;
-}
-
-void freeStrArr(unsigned char** strarr, int nelems)
-{
-    int i = 0;
-    for (i = 0; i < nelems; i++) {
-        free(strarr[i]);
-    }
-    free(strarr);
-}
-
-void iarrtostrarrinc()
-{
-    strcpy(buffer, "");
-    int i_array[] = { 0, 1, 1, 1, 0 };
-    unsigned char** strarr = makeStrArr(i_array, 5);
-    int i;
-    for (i = 0; i < 5; i++) {
-        strcat(buffer, strarr[i]);
-        puts(buffer);
+    for(i = 0, k = 0; i < nClusters; i++ , k += 4){
+      memcpy(buffer, dwordToLtlEnd(FATnext[i]), 4);
+      writeCluster(0, buffer, k, 4);
     }
 
-    //strcat(buffer, bitmap);
-    puts(buffer);
-    freeStrArr(strarr, 5);
+    strcpy(aux, FATbitmap);
+    writeCluster(0, aux, k, sizeof(FATbitmap));
+
+    free(buffer);
+    free(aux);
+
+    return 0;
 }
 
-void main(){
-    int i = 0, j = 0;
-    unsigned char bitmap[15] = "011100000000000";
+int FATread (){
 
-    iarrtostrarrinc();
-    strcat(buffer, bitmap);
-    puts(buffer);
+  unsigned char *buffer = malloc(superblock.sectorSize * superblock.SectorsPerCluster);
+  int i, k;
+
+  readCluster(0, buffer);
+
+  for(i = 0, k = 0; k < nClusters ; i++, k += 4){
+      FATnext[i] = convertToDword(buffer + k);
+  }
+
 }
-*/
 
-
+/*
 //  FUNÇÃO QUE CONSEGUE TRANSFORMAR UM VETOR DE INT EM CHAR SEM PROBLEMAS
 
 unsigned char** makeStrArr(const int* vals, const int nelems)
@@ -262,3 +229,5 @@ void iarrtostrarrinc(int* i_array, unsigned char* buffer)
   //  freeStrArr(strarr, nClusters);
 
 }
+
+*/

@@ -11,12 +11,13 @@ unsigned char* wordToLtlEnd(WORD entry);
 
 unsigned char* dwordToLtlEnd(DWORD entry);
 
-
 DIRENT2 setNullDirent();
 
 int FATinit();
 
 int FATwrite();
+
+int FATread();
 
 int FATformat (int sectors_per_block);
 

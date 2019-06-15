@@ -95,17 +95,34 @@ int main(int argc, char *argv[])
 		 	int error = 0;
 		 	unsigned char buffer[100]= {"Teste dessa bagaça 25897554150010589"};
 		 	unsigned char *bufferS;
+			int i;
 
 		 	error = FATformat(16);
 
-		 	bufferS = malloc(superblock.sectorSize * superblock.SectorsPerCluster);
+			for(i = 0; i < nClusters; i++) {
+					printf("%d\n",FATnext[i]);                  // Inicializa os vetores
+			}
 
-		 	writeCluster(1, buffer, 0, 100);
+			printf("Tá assim, mas vamo ver\n");
 
-		 	printf("Passou Write");
+			for(i = 1; i < nClusters; i++) {
+					FATnext[i] = 1;
+			}
 
-		 	readCluster(0, bufferS);
-			puts(bufferS);
+			FATnext[nClusters-1] = 55;
+
+			FATwrite();
+
+			FATread();
+
+			printf("Agora é hora da verdade\n");
+
+			for(i = 0; i < nClusters; i++) {
+					printf("%d\n",FATnext[i]);
+			}
+
+
+
 
 			if (error) {
 				printf ("Deu pau");
