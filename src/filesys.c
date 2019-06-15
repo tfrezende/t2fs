@@ -6,7 +6,6 @@
 #include "../include/filesys.h"
 #include "../include/t2fs.h"
 
-
 //      LEMBRAR QUE VAMOS USAR A FAT32 !!!!
 
 int init_FAT = 0;               // 0 se a FAT não foi inicializada, 1 se sim
@@ -159,10 +158,12 @@ int FATwrite(){
     int  i , k;
 
     unsigned char *buffer = malloc(4*sizeof(FATnext) + sizeof(FATbitmap));
+    strcpy(buffer, "");
 
-    for(i = 0; i < nClusters; i++){
-        buffer[i] = dwordToLtlEnd(FATnext[i]);
-        printf("%d\n", dwordToLtlEnd(FATnext[i]));
+
+    for(i = 0, k = 0; i < nClusters; i++, k += 4){
+        strcpy((buffer + k),dwordToLtlEnd(FATnext[i]));
+        puts(buffer);
     }
 
     strcat(buffer, FATbitmap);
@@ -172,3 +173,55 @@ int FATwrite(){
 //    free(buffer);
 
 }
+
+/*  FUNÇÃO QUE CONSEGUE TRANNSFORMAR UM VETOR DE INT EM CHAR SEM PROBLEMAS
+unsigned char buffer[500];
+
+unsigned char** makeStrArr(const int* vals, const int nelems)
+{
+    unsigned char** strarr = (unsigned char**)malloc(sizeof(unsigned char*) * nelems);
+    int i;
+    unsigned char buf[128];
+
+    for (i = 0; i < nelems; i++)
+    {
+        strarr[i] = (unsigned char*)malloc(sprintf(buf, "%d", vals[i]) + 1);
+        strcpy(strarr[i], buf);
+    }
+    return strarr;
+}
+
+void freeStrArr(unsigned char** strarr, int nelems)
+{
+    int i = 0;
+    for (i = 0; i < nelems; i++) {
+        free(strarr[i]);
+    }
+    free(strarr);
+}
+
+void iarrtostrarrinc()
+{
+    strcpy(buffer, "");
+    int i_array[] = { 0, 1, 1, 1, 0 };
+    unsigned char** strarr = makeStrArr(i_array, 5);
+    int i;
+    for (i = 0; i < 5; i++) {
+        strcat(buffer, strarr[i]);
+        puts(buffer);
+    }
+
+    //strcat(buffer, bitmap);
+    puts(buffer);
+    freeStrArr(strarr, 5);
+}
+
+void main(){
+    int i = 0, j = 0;
+    unsigned char bitmap[15] = "011100000000000";
+
+    iarrtostrarrinc();
+    strcat(buffer, bitmap);
+    puts(buffer);
+}
+*/
