@@ -99,17 +99,14 @@ int main(int argc, char *argv[])
 
 		 	error = FATformat(16);
 
-			for(i = 0; i < nClusters; i++) {
-					printf("%d\n",FATnext[i]);                  // Inicializa os vetores
-			}
+			puts(FATbitmap);
 
 			printf("Tá assim, mas vamo ver\n");
 
 			for(i = 1; i < nClusters; i++) {
-					FATnext[i] = 1;
+					FATbitmap[i] = '1';
 			}
 
-			FATnext[nClusters-1] = 55;
 
 			FATwrite();
 
@@ -117,11 +114,7 @@ int main(int argc, char *argv[])
 
 			printf("Agora é hora da verdade\n");
 
-			for(i = 0; i < nClusters; i++) {
-					printf("%d\n",FATnext[i]);
-			}
-
-
+			puts(FATbitmap);
 
 
 			if (error) {
@@ -139,7 +132,7 @@ int main(int argc, char *argv[])
 			unsigned char testeleitura[SECTOR_SIZE];
 
 
-			int sector = 1;
+			int sector = 2;
 			int error = read_sector (sector, testeleitura);
 			if (error) {
 				printf ("read_sector (%d) error = %d\n", sector, error);

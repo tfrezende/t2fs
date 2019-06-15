@@ -136,15 +136,13 @@ int writeCluster(int clusterNo, unsigned char* buffer, int position, int size) {
     int k = 0;
     unsigned int sectorToWrite;
     unsigned int sector = superblock.pFirstBlock + superblock.SectorsPerCluster*clusterNo;
-    unsigned char *newBuffer = malloc(superblock.sectorSize * superblock.SectorsPerCluster);
+    unsigned char* newBuffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
 
     readCluster(clusterNo, newBuffer);
-
 
     for(j = position; j < size + position; j++){
         newBuffer[j] = buffer[j - position];
     }
-
 
     for(sectorToWrite = sector; sectorToWrite < (sector + superblock.SectorsPerCluster); sectorToWrite++) {
           write_sector(sectorToWrite, newBuffer + k);
@@ -158,7 +156,6 @@ int writeCluster(int clusterNo, unsigned char* buffer, int position, int size) {
 int FATwrite(){
 
     unsigned char *buffer = malloc(4*sizeof(int));
-    unsigned char *aux = malloc(sizeof(char)*nClusters);
     int i, k;
 
     for(i = 0, k = 0; i < nClusters; i++ , k += 4){
@@ -166,25 +163,30 @@ int FATwrite(){
       writeCluster(0, buffer, k, 4);
     }
 
-    strcpy(aux, FATbitmap);
-    writeCluster(0, aux, k, sizeof(FATbitmap));
+    writeCluster(0, FATbitmap, k, sizeof(unsigned char) * nClusters);
 
     free(buffer);
-    free(aux);
 
     return 0;
 }
 
 int FATread (){
 
-  unsigned char *buffer = malloc(superblock.sectorSize * superblock.SectorsPerCluster);
+  unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
   int i, k;
 
   readCluster(0, buffer);
 
-  for(i = 0, k = 0; k < nClusters ; i++, k += 4){
+  for(i = 0, k = 0; i < nClusters ; i++, k += 4)
       FATnext[i] = convertToDword(buffer + k);
+
+
+
+  for(i = 0; i < nClusters; i++, k++){
+      FATbitmap[i] = buffer[k];
   }
+
+  free(buffer);
 
 }
 
