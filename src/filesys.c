@@ -70,7 +70,6 @@ int FATinit () {            // Pode ser que o arquivo já esteja formatado, só 
 int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e faz a FAT
 
       BYTE buffer[SECTOR_SIZE];	// buffer para leitura do setor
-      int nClusters;
       int i;
 
       // Lẽ o MBR, retorna erro se não conseguir
@@ -92,23 +91,22 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
       nClusters = ((superblock.pLastBlock - superblock.pFirstBlock) * SECTOR_SIZE)/superblock.clusterSize;
 
       FATnext = malloc(sizeof(int)*nClusters);
-      FATbitmap = malloc(sizeof(int)*nClusters);
+      FATbitmap = malloc(sizeof(char)*nClusters);
 
-      FATnext[0] = 0;
-      FATbitmap[0] = -1;
+      FATnext[0] = 5;                 // Cluster 0 reservado para as informações de Próxima e Livre
+      FATbitmap[0] = '5';
 
-      for(i = 1, i < nClusters, i++) {
-          FATnext[i] = -1;
-          FATbitmap[i] = 0;       
+      for(i = 1; i < nClusters; i++) {
+          FATnext[i] = -1;                  // Inicializa os vetores
+          FATbitmap[i] = '0';
       }
+
+      FATwrite();
 
       FATinit();
 
       return 0;
-
-
 }
-
 
 // Função para apagar um diretório
 DIRENT2 setNullDirent()
@@ -139,7 +137,7 @@ int writeCluster(int clusterNo, unsigned char* buffer, int position, int size) {
     int k = 0;
     unsigned int sectorToWrite;
     unsigned int sector = superblock.pFirstBlock + superblock.SectorsPerCluster*clusterNo;
-    unsigned char newBuffer [superblock.sectorSize * superblock.SectorsPerCluster];
+    unsigned char *newBuffer = malloc(superblock.sectorSize * superblock.SectorsPerCluster);
 
     readCluster(clusterNo, newBuffer);
 
@@ -152,7 +150,27 @@ int writeCluster(int clusterNo, unsigned char* buffer, int position, int size) {
           k += 256;
     }
 
-
-//    free(newBuffer);
+    free(newBuffer);
     return 0;
+}
+
+int FATwrite(){
+
+    int  i , k;
+
+    unsigned char *buffer = malloc(4*sizeof(FATnext) + sizeof(FATbitmap));
+    strcpy(buffer, "");
+
+
+    for(i = 0, k = 0; i < nClusters; i++, k += 4){
+        strcpy((buffer + k),dwordToLtlEnd(FATnext[i]));
+        puts(buffer);
+    }
+
+    strcat(buffer, FATbitmap);
+
+    writeCluster(0, buffer, 0, superblock.clusterSize);
+
+//    free(buffer);
+
 }

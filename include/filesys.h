@@ -15,11 +15,15 @@ DIRENT2 setNullDirent();
 
 int FATinit();
 
+int FATwrite();
+
 int FATformat (int sectors_per_block);
 
 int *FATnext;
 
-int *FATbitmap;
+unsigned char *FATbitmap;
+
+int nClusters;
 
 int readCluster(int clusterNo, unsigned char* buffer);
 

@@ -100,15 +100,11 @@ int main(int argc, char *argv[])
 
 		 bufferS = malloc(superblock.sectorSize * superblock.SectorsPerCluster);
 
-//		 writeCluster(0, buffer, 0, 100);
+		 writeCluster(1, buffer, 0, 100);
 
-//		 printf("Passou Write");
+		 printf("Passou Write");
 
 		 readCluster(0, bufferS);
-
-		 printf("Passou Read");
-
-
 			puts(bufferS);
 
 			if (error) {
