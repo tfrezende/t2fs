@@ -160,10 +160,10 @@ int FATwrite(){
 
     for(i = 0, k = 0; i < nClusters; i++ , k += 4){
       memcpy(buffer, dwordToLtlEnd(FATnext[i]), 4);
-      writeCluster(0, buffer, k, 4);
+      writeCluster(0, buffer, k, 4);                                      // Coloca um byte por iteração do k
     }
 
-    writeCluster(0, FATbitmap, k, sizeof(unsigned char) * nClusters);
+    writeCluster(0, FATbitmap, k, sizeof(unsigned char) * nClusters);     // Coloca o bitmap depois da FAT
 
     free(buffer);
 
@@ -179,8 +179,7 @@ int FATread (){
 
   for(i = 0, k = 0; i < nClusters ; i++, k += 4)
       FATnext[i] = convertToDword(buffer + k);
-
-
+                                                                              // Leitura tranquila
 
   for(i = 0; i < nClusters; i++, k++){
       FATbitmap[i] = buffer[k];
