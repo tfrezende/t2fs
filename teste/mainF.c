@@ -99,23 +99,16 @@ int main(int argc, char *argv[])
 
 		 	error = FATformat(16);
 
-			puts(FATbitmap);
-
-			printf("Tá assim, mas vamo ver\n");
-
 			for(i = 1; i < nClusters; i++) {
 					FATbitmap[i] = '1';
 			}
 
-
+			FATbitmap[55] = '0';
+			
 			FATwrite();
 
-			FATread();
 
-			printf("Agora é hora da verdade\n");
-
-			puts(FATbitmap);
-
+			printf("Valor livre : %d\n", FindFreeCluster());
 
 			if (error) {
 				printf ("Deu pau");

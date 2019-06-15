@@ -187,6 +187,24 @@ int FATread (){
 
   free(buffer);
 
+  return 0;
+
+}
+
+int FindFreeCluster (){
+    int i;
+    int freeCluster = 0;
+
+    for(i = 1; i < nClusters; i++){
+      if (FATbitmap[i] == '0')
+        freeCluster = i;
+      }
+
+    if (freeCluster == 0)
+      return -1;
+    else
+      return freeCluster;
+
 }
 
 /*

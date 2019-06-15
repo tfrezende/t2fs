@@ -31,6 +31,7 @@ int readCluster(int clusterNo, unsigned char* buffer);
 
 int writeCluster(int clusterNo, unsigned char* buffer, int position, int size);
 
+int FindFreeCluster ();
 
 typedef struct diskf {
     FILE2 file;
