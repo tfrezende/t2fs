@@ -38,6 +38,7 @@ unsigned char* dwordToLtlEnd(DWORD entry) {
     return buffer;
 }
 
+
 int FATinit () {            // Pode ser que o arquivo já esteja formatado, só iniciar as structs auxiliares e ler a FAT
 
   int i;
@@ -155,24 +156,18 @@ int writeCluster(int clusterNo, unsigned char* buffer, int position, int size) {
 
 int FATwrite(){
 
-    int  i , k;
-
     unsigned char *buffer = malloc(4*sizeof(FATnext) + sizeof(FATbitmap));
-    strcpy(buffer, "");
 
-
-    for(i = 0, k = 0; i < nClusters; i++, k += 4){
-        strcpy((buffer + k),dwordToLtlEnd(FATnext[i]));
-        puts(buffer);
-    }
-
-    strcat(buffer, FATbitmap);
-
-    writeCluster(0, buffer, 0, superblock.clusterSize);
+    iarrtostrarrinc(FATnext, buffer);                       // Até funciona, problema é que fica tudo CHAR
+                                                            // fica até o negativo em char, tem que ver melhor
+    strcat(buffer, FATbitmap);                              // Acho que no fim é o unico jeito e fodac
+                                                            // Tem que testar a leitura dessa merda
+    writeCluster(0, buffer, 0, superblock.clusterSize);  
+}
 
 //    free(buffer);
 
-}
+
 
 /*  FUNÇÃO QUE CONSEGUE TRANNSFORMAR UM VETOR DE INT EM CHAR SEM PROBLEMAS
 unsigned char buffer[500];
@@ -225,3 +220,45 @@ void main(){
     puts(buffer);
 }
 */
+
+
+//  FUNÇÃO QUE CONSEGUE TRANSFORMAR UM VETOR DE INT EM CHAR SEM PROBLEMAS
+
+unsigned char** makeStrArr(const int* vals, const int nelems)
+{
+    unsigned char** strarr = (unsigned char**)malloc(sizeof(unsigned char*) * nelems);
+    int i;
+    unsigned char buf[128];
+
+    for (i = 0; i < nelems; i++)
+    {
+        strarr[i] = (unsigned char*)malloc(sprintf(buf, "%d", vals[i]) + 1);
+        strcpy(strarr[i], buf);
+    }
+    return strarr;
+}
+
+void freeStrArr(unsigned char** strarr, int nelems)
+{
+    int i = 0;
+    for (i = 0; i < nelems; i++) {
+        free(strarr[i]);
+    }
+    free(strarr);
+}
+
+void iarrtostrarrinc(int* i_array, unsigned char* buffer)
+{
+    strcpy(buffer, "");
+    unsigned char** strarr = makeStrArr(i_array, nClusters);
+    int i;
+
+    for (i = 0; i < nClusters; i++) {
+        strcat(buffer, strarr[i]);
+    }
+
+    //strcat(buffer, bitmap);
+    puts(buffer);
+  //  freeStrArr(strarr, nClusters);
+
+}

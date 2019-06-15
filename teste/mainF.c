@@ -92,19 +92,19 @@ int main(int argc, char *argv[])
 
 		if (strcmp(cmd,"l")==0) {					// TESTE EM GERAL, PODE USAR QUALQUER FUNÇÃO AQUI
 
-		 int error = 0;
-		 unsigned char buffer[100]= {"Teste dessa bagaça 25897554150010589"};
-		 unsigned char *bufferS;
+		 	int error = 0;
+		 	unsigned char buffer[100]= {"Teste dessa bagaça 25897554150010589"};
+		 	unsigned char *bufferS;
 
-		 error = FATformat(16);
+		 	error = FATformat(16);
 
-		 bufferS = malloc(superblock.sectorSize * superblock.SectorsPerCluster);
+		 	bufferS = malloc(superblock.sectorSize * superblock.SectorsPerCluster);
 
-		 writeCluster(1, buffer, 0, 100);
+		 	writeCluster(1, buffer, 0, 100);
 
-		 printf("Passou Write");
+		 	printf("Passou Write");
 
-		 readCluster(0, bufferS);
+		 	readCluster(0, bufferS);
 			puts(bufferS);
 
 			if (error) {

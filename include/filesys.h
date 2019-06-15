@@ -11,6 +11,7 @@ unsigned char* wordToLtlEnd(WORD entry);
 
 unsigned char* dwordToLtlEnd(DWORD entry);
 
+
 DIRENT2 setNullDirent();
 
 int FATinit();
@@ -28,6 +29,16 @@ int nClusters;
 int readCluster(int clusterNo, unsigned char* buffer);
 
 int writeCluster(int clusterNo, unsigned char* buffer, int position, int size);
+
+unsigned char** makeStrArr(const int* vals, const int nelems);
+
+void freeStrArr(unsigned char** strarr, int nelems);                // Funções auxiliares, rever nomes
+
+void iarrtostrarrinc(int* i_array, unsigned char* buffer);
+
+
+
+
 
 typedef struct diskf {
     FILE2 file;
