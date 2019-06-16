@@ -124,7 +124,7 @@ int rmdir2 (char *pathname) {
 Função:	Função usada para alterar o CP (current path)
 -----------------------------------------------------------------------------*/
 int chdir2 (char *pathname) {
-	if(strcmp(pathname,"") ==0)
+	if(strcmp(pathname,"") == 0)
 		return -1;
 	return changeDir(pathname);
 }

@@ -47,7 +47,7 @@ DISK_FILE openFiles[10];
 typedef struct currp {
     char* absolute;
     int clusterNo;
-} CURRENT_PATH;                         // OBSERVAR O USO DESSAS ESTRUTURAS E POSSIVEIS UTILIZAÇÕES
+} CURRENT_PATH;
 
 CURRENT_PATH currentPath;
 

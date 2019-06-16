@@ -199,8 +199,10 @@ int FindFreeCluster (){
     int freeCluster = 0;
 
     for(i = 1; i < nClusters; i++){
-      if (FATbitmap[i] == '0')
-        freeCluster = i;
+        if (FATbitmap[i] == '0'){
+            freeCluster = i;
+            break;
+        }
       }
 
     if (freeCluster == 0)
@@ -211,122 +213,39 @@ int FindFreeCluster (){
 }
 
 int changeDir(char * path){
-/*
-    char * absolute;
-    char * firstOut;
-    char * secondOut;
-    int clusterNewPath;
-    char *linkOutput;
 
-//Variaveis para a validação do tipo:
-    int i;
-    int isDir = 0;
-    int clusterByteSize = sizeof(unsigned char)*SECTOR_SIZE*superBlock.SectorsPerCluster;
-    unsigned char* buffer = malloc(clusterByteSize);
-    int clusterOfDir;
+    DISK_DIR descriptor;
 
-    if(strlen(path) == 0){ //Se a string for vazia n altera o lugar
-        return 0;
+    if(strcmp(path, "/") == 0){
+        strcpy(currentPath.absolute, path);
+        currentPath.clusterNo = superblock.RootDirCluster;
     }
-    if(strcmp(path,"/") == 0){ // "/"" vai para a RAIZ
-        currentPath.clusterNo = superBlock.RootDirCluster;
-        free(currentPath.absolute);
-        currentPath.absolute = malloc(sizeof(char)*2);
-        //memset(currentPath.absolute, '/0', 2);
-        strcpy(currentPath.absolute,"/");
-        return 0;
-    }
-    //faço depois da comparação do path com vazio e "/", pq se nao tava dando segmentation..
 
-        if(link(path, &linkOutput) == -1)
-            return -1;
+    if(getDescriptor(&descriptor, path) != 0)
+        return -1;
 
-    if(toAbsolutePath(linkOutput, currentPath.absolute, &absolute) == -1){
-
-        free(absolute);
+    if(descriptor.directory.fileType != 0x02){
+        // se o tipo for diferente de diretório retorna erro
         return -1;
     }
-
-    if(separatePath(absolute, &firstOut, &secondOut) == -1){
-        return -2;
-    }
-
-    clusterOfDir = pathToCluster(firstOut);
-
-    readCluster(clusterOfDir, buffer);
-    if(strlen(secondOut) > 0){
-        for(i = 0; i < clusterByteSize; i+= sizeof(struct t2fs_record)) {
-            if ( (strcmp((char *)buffer+i+1, secondOut) == 0) && (((BYTE) buffer[i]) == TYPEVAL_DIRETORIO) && !isDir ) {
-                isDir = 4;
-            }
-        }
-        if(isDir == 0){
-            return -3;
-        }
-    }
-//se o absoluto do atual com o path for /, então é pq é o ROOT.
-    if(strlen(absolute)== 1 && absolute[0] == '/'){
-        clusterNewPath = superBlock.RootDirCluster;
+    /* Não entendi isso
+    if(strcmp(descriptor.directory.name, ".") == 0){
+        strcpy(currentPath.absolute, "/");
     }
     else{
-        clusterNewPath = pathToCluster(absolute);
-    }
+        strcpy(currentPath.absolute, descriptor.directory.name);
+    }*/
 
-    if(clusterNewPath == -1){//se o pathname n existir
-        free(absolute);
-        return -5;
-    }
+    currentPath.clusterNo = descriptor.clusterDir;
+    //currentPath.absolute = absolute;
 
-    free(currentPath.absolute);
-    currentPath.absolute = malloc(sizeof(char)*(strlen(absolute)+1));
-    strcpy(currentPath.absolute, absolute);
-    currentPath.clusterNo = clusterNewPath;
-
-    free(absolute);
-*/
     return 0;
 }
 
-/*
-//  FUNÇÃO QUE CONSEGUE TRANSFORMAR UM VETOR DE INT EM CHAR SEM PROBLEMAS
 
-unsigned char** makeStrArr(const int* vals, const int nelems)
-{
-    unsigned char** strarr = (unsigned char**)malloc(sizeof(unsigned char*) * nelems);
-    int i;
-    unsigned char buf[128];
+int getDescriptor(DISK_DIR * descriptor, char * filename){
 
-    for (i = 0; i < nelems; i++)
-    {
-        strarr[i] = (unsigned char*)malloc(sprintf(buf, "%d", vals[i]) + 1);
-        strcpy(strarr[i], buf);
-    }
-    return strarr;
+
+
+    return 0;
 }
-
-void freeStrArr(unsigned char** strarr, int nelems)
-{
-    int i = 0;
-    for (i = 0; i < nelems; i++) {
-        free(strarr[i]);
-    }
-    free(strarr);
-}
-
-void iarrtostrarrinc(int* i_array, unsigned char* buffer)
-{
-    strcpy(buffer, "");
-    unsigned char** strarr = makeStrArr(i_array, nClusters);
-    int i;
-
-    for (i = 0; i < nClusters; i++) {
-        strcat(buffer, strarr[i]);
-    }
-
-    //strcat(buffer, bitmap);
-    puts(buffer);
-  //  freeStrArr(strarr, nClusters);
-
-}
-
-*/
