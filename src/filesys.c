@@ -214,27 +214,27 @@ int FindFreeCluster (){
 
 int changeDir(char * path){
 
-    DISK_DIR descriptor;
+    char * absolute;
+    char * firstOut;
+    char * secondOut;
+
+    if(strlen(path) == 0){
+        //Se a string for vazia não altera o lugar
+        return 0;
+    }
 
     if(strcmp(path, "/") == 0){
+        // Se o path contiver somente "/" vai para o root
+        free(currentPath.absolute);
+        currentPath = malloc(sizeof(char) * 2);
         strcpy(currentPath.absolute, path);
         currentPath.clusterNo = superblock.RootDirCluster;
     }
 
-    if(getDescriptor(&descriptor, path) != 0)
+    if (separatePath(absolute, &firstOut, &secondOut) != 0)
         return -1;
 
-    if(descriptor.directory.fileType != 0x02){
-        // se o tipo for diferente de diretório retorna erro
-        return -1;
-    }
-    /* Não entendi isso
-    if(strcmp(descriptor.directory.name, ".") == 0){
-        strcpy(currentPath.absolute, "/");
-    }
-    else{
-        strcpy(currentPath.absolute, descriptor.directory.name);
-    }*/
+
 
     currentPath.clusterNo = descriptor.clusterDir;
     //currentPath.absolute = absolute;
@@ -242,10 +242,253 @@ int changeDir(char * path){
     return 0;
 }
 
+int separatePath(char * path, char ** FirstStringOutput, char ** SecondStringOutput) {
+    const char dir_div = '/';
+    int lenghtAux;
+    int lenghtPath = strlen(path);
+    char *aux =  malloc(lenghtPath);
+    //Nunca vão ter um tamanho maior que o path
+    *SecondStringOutput = malloc(lenghtPath);
+    memset(*SecondStringOutput,'\0',lenghtPath);
+    *FirstStringOutput = malloc(lenghtPath);
+    memset(*FirstStringOutput,'\0',lenghtPath);
 
-int getDescriptor(DISK_DIR * descriptor, char * filename){
-
-
-
+    aux = strrchr(path, dir_div);
+    lenghtAux = strlen(aux);
+    memcpy(*SecondStringOutput,aux+1,lenghtAux);
+    memcpy(*FirstStringOutput, path, lenghtPath-lenghtAux);
+    strcat(*FirstStringOutput,"/");
     return 0;
 }
+int toAbsolutePath(char * path, char * currPath, char ** output) {
+    int i;
+    int numTokens;
+    char ** tokenizedPath;
+    char * cutToken;
+    int bufferSize = (strlen(path) + 1 + strlen(currPath) + 1);
+    char * buffer = malloc(sizeof(char)*bufferSize);
+    char * pathcpy = malloc(sizeof(char)*(strlen(path) + 1));
+
+    strcpy(pathcpy,path);
+
+    if(pathcpy[0] == '/'){
+        buffer[0] = '\0';
+    } else {
+        strcpy(buffer,currPath);
+    }
+
+    numTokens = countFolders(pathcpy, &tokenizedPath);
+
+    for(i = 0; i < numTokens; i++) {
+        if (strcmp(tokenizedPath[i],"..") == 0) {
+            if(strcmp(buffer,"/") != 0){
+                cutToken = strrchr(buffer, '/');
+                *cutToken = '\0';
+            }
+            if(strcmp(buffer,"") == 0) {
+                strcpy(buffer,"/");
+            }
+        } else{
+            if (strcmp(tokenizedPath[i],".") != 0) {
+                if(strcmp(buffer,"/") != 0){
+                    strcat(buffer,"/");
+                }
+                strcat(buffer,tokenizedPath[i]);
+            }
+        }
+    }
+
+    *output = malloc(sizeof(char)*(strlen(buffer)+ 1));
+
+    strcpy(*output, buffer);
+
+    free(buffer);
+    free(pathcpy);
+
+    return 0;
+
+}
+
+int countFolders(char* path, char*** tokenized) {
+    int i;
+    int numFolders = 1;
+    char * pathcpy = malloc(sizeof(char)*(strlen(path)+1));
+    char * pathTok;
+
+    strcpy(pathcpy, path);
+
+    pathTok = strtok(pathcpy,"/");
+
+    while(pathTok != NULL) {
+        pathTok = strtok(NULL,"/");
+        if (pathTok != NULL) {
+            numFolders += 1;
+        }
+    }
+
+    *tokenized = malloc(sizeof(char*)*numFolders);
+
+    strcpy(pathcpy, path);
+
+    pathTok = strtok(pathcpy,"/");
+
+    i = 0;
+    while(pathTok != NULL) {
+        (*tokenized)[i] = malloc(sizeof(char)*(strlen(pathTok)+1));
+        strcpy((*tokenized)[i], pathTok);
+        pathTok = strtok(NULL,"/");
+        i += 1;
+    }
+    free(pathcpy);
+    return numFolders;
+
+}
+// VAMOS TER QUE MODIFICAR AS ESTRUTURAS PARA UTILIZAR AS TRÊS FUNÇÕES ABAIXO
+
+/*
+int link(char * path, char ** output) {
+    int i;
+    int isLink = 0;
+    unsigned char* buffer = malloc(superblock.clusterSize;);
+    char * absolute;
+    char * pathToFile;
+    char * fileName;
+    int pathClusterNo;
+    int linkClusterNo;
+
+
+    toAbsolutePath(path, currentPath.absolute, &absolute);
+
+    //printf("\nAboslute: %s", absolute);
+    separatePath(absolute, &pathToFile, &fileName);
+
+    pathClusterNo = pathToCluster(pathToFile);
+
+    if(pathClusterNo == -1) {
+        free(buffer);
+        free(absolute);
+        free(fileName);
+        free(pathToFile);
+        return -1;
+    }
+
+    readCluster(pathClusterNo, buffer);
+
+    // printf("\nfileName: %s", fileName);
+    for(i = 0; i < superblock.clusterSize;; i+= sizeof(struct t2fs_record)) {
+        // printf("\nNumero de vezes do for %d\n", i);
+        if ( (strcmp((char *)buffer+i+1, fileName) == 0) && (((BYTE) buffer[i]) == TYPEVAL_LINK) && !isLink ) {
+            isLink = 1;
+        }
+    }
+
+    if(!isLink) {
+        free(buffer);
+        free(absolute);
+        free(fileName);
+        free(pathToFile);
+        *output = malloc(sizeof(char)*(strlen(path)+1));
+        strcpy(*output,path);
+        return 0;//BOTEI RETORNO COMO 0 PARA NAO SOFTLINK E COMO 1 PARA SOFTLINK
+    }
+
+    linkClusterNo = pathToCluster(path);
+
+    memset(buffer,0,superblock.clusterSize;);
+
+    readCluster(linkClusterNo,buffer);
+
+    *output = malloc(sizeof(char)*(strlen((char*)buffer)+1));
+    strcpy(*output,(char*)buffer);
+
+    free(buffer);
+    free(absolute);
+    free(fileName);
+    free(pathToFile);
+    //BOTEI RETORNO COMO 0 PARA NAO SOFTLINK E COMO 1 PARA SOFTLINK
+    return 1;
+}
+
+int pathToCluster(char* path) {
+    int i;
+    int found = 0;
+    int pathsNo = 0;
+    int folderInPath = 1;
+    int pathComplete = 0;
+    unsigned int currentCluster;
+    char* pathTok;
+    char* pathcpy = malloc(sizeof(char)*(strlen(path)+1));
+    int folderSize = ( superblock.clusterSize / sizeof(struct t2fs_record) );
+    struct t2fs_record* folderContent = malloc(sizeof(struct t2fs_record)*( (superblock.clusterSize) / sizeof(struct t2fs_record) ));
+
+    strcpy(pathcpy,path);
+
+    if (pathcpy[0] == '/') {
+        currentCluster = superBlock.RootDirCluster;
+    }else {
+        currentCluster = currentPath.clusterNo;
+    }
+
+    if (strcmp(pathcpy,"/") == 0) {
+        return superBlock.RootDirCluster;
+    }
+
+    pathTok = strtok(pathcpy,"/");
+
+    while(pathTok != NULL && pathsNo == found && folderInPath) {
+        pathsNo += 1;
+        folderContent = readDataClusterFolder(currentCluster);
+        for(i = 0; i < folderSize; i++) {
+            if (strcmp(folderContent[i].name,pathTok) == 0) {
+                currentCluster = folderContent[i].firstCluster;
+                found += 1;
+                if (folderContent[i].TypeVal != TYPEVAL_DIRETORIO) {
+                    folderInPath = 0;
+                }
+            }
+        }
+        pathTok = strtok(NULL,"/");
+        if (pathTok == NULL) {
+            pathComplete = 1;
+        }
+    }
+
+    if (pathsNo != found) {
+        free(pathcpy);
+        free(folderContent);
+        return -1;
+    }
+
+    if (!pathComplete) {
+        free(pathcpy);
+        free(folderContent);
+        return -1;
+    }
+    free(pathcpy);
+    free(folderContent);
+    return currentCluster;
+}
+
+struct t2fs_record* readDataClusterFolder(int clusterNo) {
+    int j;
+    int folderSizeInBytes = sizeof(struct t2fs_record)*( (SECTOR_SIZE*superBlock.SectorsPerCluster) / sizeof(struct t2fs_record) );
+    unsigned int sector = superBlock.DataSectorStart + superBlock.SectorsPerCluster*clusterNo;
+    unsigned char* buffer = malloc(sizeof(unsigned char)*SECTOR_SIZE*superBlock.SectorsPerCluster);
+    struct t2fs_record* folderContent = malloc(folderSizeInBytes);
+
+    if (sector >= superBlock.DataSectorStart && sector < superBlock.NofSectors) {
+        readCluster(clusterNo, buffer);
+
+        for(j = 0; j < folderSizeInBytes/sizeof(struct t2fs_record); j++) {
+            folderContent[j].TypeVal = (BYTE) *(buffer + sizeof(struct t2fs_record)*j);
+            memcpy(folderContent[j].name, buffer + 1 + sizeof(struct t2fs_record)*j, 51);
+            folderContent[j].bytesFileSize = convertToDword(buffer + 52 + sizeof(struct t2fs_record)*j);
+            folderContent[j].clustersFileSize = convertToDword(buffer + 56 + sizeof(struct t2fs_record)*j);
+            folderContent[j].firstCluster = convertToDword(buffer + 60 + sizeof(struct t2fs_record)*j);
+        }
+        free(buffer);
+        return folderContent;
+    }
+    free(buffer);
+    return NULL;
+}*/
