@@ -107,14 +107,20 @@ int seek2 (FILE2 handle, DWORD offset) {
 Função:	Função usada para criar um novo diretório.
 -----------------------------------------------------------------------------*/
 int mkdir2 (char *pathname) {
-	return -1;
+	if (strncmp(pathname, "") == 0)
+		return -1;
+	else
+		return createDir(pathname);
 }
 
 /*-----------------------------------------------------------------------------
 Função:	Função usada para remover (apagar) um diretório do disco.
 -----------------------------------------------------------------------------*/
 int rmdir2 (char *pathname) {
-	return -1;
+	if (strncmp(pathname, "") == 0)
+		return -1;
+	else
+		return deleteDir(pathname);
 }
 
 /*-----------------------------------------------------------------------------

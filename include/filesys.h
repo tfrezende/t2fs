@@ -33,13 +33,15 @@ int writeCluster(int clusterNo, unsigned char* buffer, int position, int size);
 
 int FindFreeCluster ();
 
-int changeDir(char * path);
+int changeDir(char * pathname);
 
 int separatePath(char * path, char ** FirstStringOutput, char ** SecondStringOutput);
 
 DIRENT2* readDataClusterFolder(int clusterNo);
 
 int pathToCluster(char* path);
+
+DIR2 createDir (char *pathname);
 
 typedef struct diskf {
     FILE2 file;

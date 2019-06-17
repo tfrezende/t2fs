@@ -212,60 +212,76 @@ int FindFreeCluster (){
 
 }
 
-/*
-int changeDir(char * path){
+int changeDir(char * pathname){
 
-    char * absolute;
-    char * firstOut;
-    char * secondOut;
+    int clusterDir = 0;
+    int dirFound = 0;
+    char *dirName;
+    char *path;
+    int folderSizeInBytes = ((superblock.clusterSize) / sizeof(DIRENT2) );
+    unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.clusterSize);
 
-    if(strlen(path) == 0){
-        //Se a string for vazia não altera o lugar
-        return 0;
-    }
-
-    if(strcmp(path, "/") == 0){
+    if(strcmp(pathname, "/") == 0){
         // Se o path contiver somente "/" vai para o root
         free(currentPath.absolute);
-        currentPath = malloc(sizeof(char) * 2);
-        strcpy(currentPath.absolute, path);
+        currentPath.absolute = malloc(sizeof(char) * 2);
+        strcpy(currentPath.absolute, pathname);
         currentPath.clusterNo = superblock.RootDirCluster;
     }
 
-    if (separatePath(absolute, &firstOut, &secondOut) != 0)
+    if(separatePath(pathname, &path, &dirName) != 0)
         return -1;
 
+    if(strlen(dirName) <= 0)
+        return -1;
 
+    clusterDir = pathToCluster(path);
 
-    currentPath.clusterNo = descriptor.clusterDir;
-    //currentPath.absolute = absolute;
+    readCluster(clusterDir, buffer);
+
+    for (i = 0; i < folderSizeInBytes; i += sizeof(DIRENT2) ){
+        if ( (strcmp( (char *) buffer[i], dirName) ) && ( (BYTE) buffer[i + 31] == 0x02) )
+            dirFound = 1;
+    }
+
+    if(!dirFound)
+        return -1;
+
+    free(currentPath.absolute);
+    currentPath.absolute = malloc(sizeof(char) * strlen(pathname) + 1);
+    strcpy(currentPath.absolute, pathname);
+    currentPath.clusterNo = clusterDir;
+
+    free(buffer);
 
     return 0;
 }
-*/
 
-// Função que separa o último nome de um path
 int separatePath(char * path, char ** FirstStringOutput, char ** SecondStringOutput) {
+
     const char dir_div = '/';
     int lenghtAux;
     int lenghtPath = strlen(path);
     char *aux =  malloc(lenghtPath);
+
     //Nunca vão ter um tamanho maior que o path
     *SecondStringOutput = malloc(lenghtPath);
     memset(*SecondStringOutput,'\0',lenghtPath);
+
     *FirstStringOutput = malloc(lenghtPath);
     memset(*FirstStringOutput,'\0',lenghtPath);
 
     aux = strrchr(path, dir_div);
     lenghtAux = strlen(aux);
-    memcpy(*SecondStringOutput,aux+1,lenghtAux);
+
+    memcpy(*SecondStringOutput, aux+1,lenghtAux);
     memcpy(*FirstStringOutput, path, lenghtPath-lenghtAux);
     strcat(*FirstStringOutput,"/");
+
     return 0;
 }
 
-
-DIR2 CreateDir (char *pathname){
+DIR2 createDir (char *pathname){
 
       int clusterDir = 0;
       int clusterNewDir = 0;
@@ -286,15 +302,16 @@ DIR2 CreateDir (char *pathname){
 
       separatePath(pathname, &path, &dirName);
 
+      if(strlen(dirName) <= 0)
+        return -1;
+
       // Adicionar dirétorio no diretorio pai
 
       clusterDir = pathToCluster(path);
 
-
       readCluster(clusterDir, buffer);
 
       dirSpace = (DWORD) (buffer[0]);
-      printf("dir : %d\n", dirSpace);
 
       strcpy (newDirEnt.name, dirName);
       newDirEnt.fileType = 0x02;
@@ -313,26 +330,21 @@ DIR2 CreateDir (char *pathname){
       memcpy(buffer, wordToLtlEnd(dirSpace), 1);
       writeCluster(clusterDir, buffer, 0, 1);
 
-
-      printf("\n\nQueria agradecer primeiramente aos meus pais por todo apoio a mim confiado\n\n\n");
-
       free(buffer);
 
       //  Livre cluster
-      return -1;
-
-
-
+      return 0;
 
 }
 
-
 int pathToCluster(char* path) {
+
         int i;
         int found = 0;
         int pathsNo = 0;
         int folderInPath = 1;
         int pathComplete = 0;
+
         unsigned int currentCluster;
         char* pathTok;
         char* pathcpy = malloc( sizeof(char) * (strlen(path)+1) );
@@ -402,7 +414,7 @@ DIRENT2* readDataClusterFolder(int clusterNo) {
 
             for(j = 0; j < folderSizeInBytes ; j++) {
                 memcpy(folderContent[j].name, buffer + sizeof(DIRENT2)*j, 31);
-                folderContent[j].fileType = (BYTE) *(buffer + 31);
+                folderContent[j].fileType = (BYTE) *(buffer + 31) + sizeof(DIRENT2)*j;
                 folderContent[j].fileSize = convertToDword(buffer + 32 + sizeof(DIRENT2)*j);
                 folderContent[j].firstCluster = convertToDword(buffer + 36 + sizeof(DIRENT2)*j);
             }
@@ -445,7 +457,7 @@ int link(char * path, char ** output) {
     // printf("\nfileName: %s", fileName);
     for(i = 0; i < superblock.clusterSize;; i+= sizeof(DIRENT2))) {
         // printf("\nNumero de vezes do for %d\n", i);
-        if ( (strcmp((char *)buffer+i+1, fileName) == 0) && (((BYTE) buffer[i]) == TYPEVAL_LINK) && !isLink ) {
+        if ( (strcmp((char *)buffer+i+1, fileName) == 0) && (((BYTE) buffer[i]) == 0x03) && !isLink ) {
             isLink = 1;
         }
     }
