@@ -18,6 +18,7 @@ typedef unsigned int DWORD;
 
 /** Registro com as informa��es da entrada de diret�rio, lida com readdir2 */
 #define MAX_FILE_NAME_SIZE 31
+#define DIRENT2_SIZE 42
 
 typedef struct {
     char    name[MAX_FILE_NAME_SIZE + 1];   /* Nome do arquivo cuja entrada foi lida do disco      */
@@ -28,8 +29,8 @@ typedef struct {
 
 typedef struct {
     BYTE nObjects;                        // numero de objetos (Arquivos, Diretórios, Links) no diretório
-    DIRENT2* Objects                      // Lista de entradas de diretorio
-} DIR
+    DIRENT2* Objects ;                     // Lista de entradas de diretorio
+} DIR;
 
 
 // Estrutura do superbloco

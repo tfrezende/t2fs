@@ -37,9 +37,7 @@ int changeDir(char * path);
 
 int separatePath(char * path, char ** FirstStringOutput, char ** SecondStringOutput);
 
-int toAbsolutePath(char * path, char * currPath, char ** output);
-
-int countFolders(char* path, char*** tokenized);
+DIRENT2 readDataClusterFolder(int clusterNo);
 
 typedef struct diskf {
     FILE2 file;

@@ -97,23 +97,9 @@ int main(int argc, char *argv[])
 		 	unsigned char *bufferS;
 			int i;
 
-		 	error = FATformat(89);
+		 	error = FATformat(16);
 
-			for(i = 1; i < nClusters; i++) {
-					FATbitmap[i] = '1';
-			}
-
-			if (error) {
-				printf ("Deu pau");
-				continue;
-			}
-
-			FATbitmap[55] = '0';
-
-			FATwrite();
-
-
-			printf("Valor livre : %d\n", FindFreeCluster());
+			teste = CreateDir("/teste");
 
 
 
@@ -126,6 +112,7 @@ int main(int argc, char *argv[])
 
 			unsigned char testeleitura[SECTOR_SIZE];
 
+			printf("DIR : %d\n\n\n", sizeof(DIRENT2));
 
 			int sector = 2;
 			int error = read_sector (sector, testeleitura);
