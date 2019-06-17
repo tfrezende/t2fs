@@ -270,8 +270,8 @@ DIR2 CreateDir (char *pathname){
       int clusterDir = 0;
       int clusterNewDir = 0;
       int dirSpace = 0;
-      char *dirName;  // = malloc(sizeof(char) * MAX_FILE_NAME_SIZE);
-      char *path;  // = malloc(sizeof(char) * MAX_FILE_NAME_SIZE * 8);  // 8 é um numero arbitrario
+      char *dirName;
+      char *path;
       unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.clusterSize);
       DIRENT2 newDirEnt;
 
@@ -284,18 +284,17 @@ DIR2 CreateDir (char *pathname){
           return -1;
       }
 
-
-
-      separatePath(pathname, &dirName, &path);
+      separatePath(pathname, &path, &dirName);
 
       // Adicionar dirétorio no diretorio pai
 
       clusterDir = pathToCluster(path);
 
+
       readCluster(clusterDir, buffer);
 
-      dirSpace = convertToDword (buffer);
-      dirSpace += 1;
+      dirSpace = (DWORD) (buffer[0]);
+      printf("dir : %d\n", dirSpace);
 
       strcpy (newDirEnt.name, dirName);
       newDirEnt.fileType = 0x02;
@@ -307,9 +306,17 @@ DIR2 CreateDir (char *pathname){
       memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*2, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
       memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*6, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
 
-      writeCluster(clusterDir, buffer, dirSpace * sizeof(DIRENT2) + 1, sizeof(DIRENT2) + 1);
+      writeCluster(clusterDir, buffer, (dirSpace * sizeof(DIRENT2)) + 1, sizeof(DIRENT2) + 1);
+
+      dirSpace += 1;
+
+      memcpy(buffer, wordToLtlEnd(dirSpace), 1);
+      writeCluster(clusterDir, buffer, 0, 1);
+
 
       printf("\n\nQueria agradecer primeiramente aos meus pais por todo apoio a mim confiado\n\n\n");
+
+      free(buffer);
 
       //  Livre cluster
       return -1;
@@ -321,90 +328,89 @@ DIR2 CreateDir (char *pathname){
 
 
 int pathToCluster(char* path) {
-    int i;
-    int found = 0;
-    int pathsNo = 0;
-    int folderInPath = 1;
-    int pathComplete = 0;
-    unsigned int currentCluster;
-    char* pathTok;
-    char* pathcpy = malloc(sizeof(char)*(strlen(path)+1));
-    int folderSize = (superblock.clusterSize / sizeof(DIRENT2)) ;
-    DIRENT2* folderContent = malloc( (sizeof(DIRENT2))*( (superblock.clusterSize) / sizeof(DIRENT2)) ) ;
+        int i;
+        int found = 0;
+        int pathsNo = 0;
+        int folderInPath = 1;
+        int pathComplete = 0;
+        unsigned int currentCluster;
+        char* pathTok;
+        char* pathcpy = malloc( sizeof(char) * (strlen(path)+1) );
+        int folderSize = (superblock.clusterSize / sizeof(DIRENT2)) ;
+        DIRENT2* folderContent = malloc(superblock.clusterSize) ;
 
-    strcpy(pathcpy,path);
+        strcpy(pathcpy,path);
 
-    if (pathcpy[0] == '/') {
-        currentCluster = superblock.RootDirCluster;
-    }else {
-        currentCluster = currentPath.clusterNo;
-    }
+        if (pathcpy[0] == '/') {
+            currentCluster = superblock.RootDirCluster;
+        }else {
+            currentCluster = currentPath.clusterNo;
+        }
 
-    if (strcmp(pathcpy,"/") == 0) {
-        return superblock.RootDirCluster;
-    }
+        if (strcmp(pathcpy,"/") == 0) {
+            return superblock.RootDirCluster;
+        }
 
-    pathTok = strtok(pathcpy,"/");
+        pathTok = strtok(pathcpy,"/");
 
-    while(pathTok != NULL && pathsNo == found && folderInPath) {
-        pathsNo += 1;
-        folderContent = readDataClusterFolder(currentCluster);
-        for(i = 0; i < folderSize; i++) {
-            if (strcmp(folderContent[i].name,pathTok) == 0) {
-                currentCluster = folderContent[i].firstCluster;
-                found += 1;
-                if (folderContent[i].fileType != 0x02) {
-                    folderInPath = 0;
+
+        while(pathTok != NULL && pathsNo == found && folderInPath) {
+            pathsNo += 1;
+            folderContent = readDataClusterFolder(currentCluster);
+            for(i = 0; i < folderSize; i++) {
+                if (strcmp(folderContent[i].name,pathTok) == 0) {
+                    currentCluster = folderContent[i].firstCluster;
+                    found += 1;
+                    if (folderContent[i].fileType != 0x02) {
+                        folderInPath = 0;
+                    }
                 }
             }
+            pathTok = strtok(NULL,"/");
+            if (pathTok == NULL) {
+                pathComplete = 1;
+            }
         }
-        pathTok = strtok(NULL,"/");
-        if (pathTok == NULL) {
-            pathComplete = 1;
-        }
-    }
 
-    if (pathsNo != found) {
+        if (pathsNo != found) {
+            free(pathcpy);
+            free(folderContent);
+            return -1;
+        }
+
+        if (!pathComplete) {
+            free(pathcpy);
+            free(folderContent);
+            return -1;
+        }
         free(pathcpy);
         free(folderContent);
-        return -1;
-    }
-
-    if (!pathComplete) {
-        free(pathcpy);
-        free(folderContent);
-        return -1;
-    }
-    free(pathcpy);
-    free(folderContent);
-    printf("Miraculosamente chegamos aqui?\n");
-    return currentCluster;
+        return currentCluster;
 }
 
 DIRENT2* readDataClusterFolder(int clusterNo) {
 
-    int j;
-    int folderSizeInBytes = ((superblock.clusterSize) / sizeof(DIRENT2) );
-    unsigned int sector = superblock.pFirstBlock + superblock.SectorsPerCluster * clusterNo;
-    unsigned char* buffer = malloc(sizeof(unsigned char)* superblock.clusterSize);
-    DIRENT2* folderContent = malloc(folderSizeInBytes);
+        int j;
+        int folderSizeInBytes = ((superblock.clusterSize) / sizeof(DIRENT2) );
+        unsigned int sector = superblock.pFirstBlock + superblock.SectorsPerCluster * clusterNo;
+        unsigned char* buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
+        DIRENT2* folderContent = malloc(folderSizeInBytes);
 
-    if (sector >= superblock.pFirstBlock && sector <= superblock.pLastBlock) {
+        if (sector >= superblock.pFirstBlock && sector <= superblock.pLastBlock) {
 
-        readCluster(clusterNo, buffer);
+            readCluster(clusterNo, buffer);
 
-        for(j = 0; j < folderSizeInBytes ; j++) {
-            memcpy(folderContent[j].name, buffer + sizeof(DIRENT2)*j, 31);
-            folderContent[j].fileType = (BYTE) *(buffer + 31);
-            folderContent[j].fileSize = convertToDword(buffer + 32 + sizeof(DIRENT2)*j);
-            folderContent[j].firstCluster = convertToDword(buffer + 36 + sizeof(DIRENT2)*j);
+            for(j = 0; j < folderSizeInBytes ; j++) {
+                memcpy(folderContent[j].name, buffer + sizeof(DIRENT2)*j, 31);
+                folderContent[j].fileType = (BYTE) *(buffer + 31);
+                folderContent[j].fileSize = convertToDword(buffer + 32 + sizeof(DIRENT2)*j);
+                folderContent[j].firstCluster = convertToDword(buffer + 36 + sizeof(DIRENT2)*j);
+            }
+            free(buffer);
+            return folderContent;
         }
         free(buffer);
-        printf("\nChegou no fim do READATA\n\n");
-        return folderContent;
-    }
-    free(buffer);
-    return NULL;
+        return NULL;
 }
 
 // VAMOS TER QUE MODIFICAR AS ESTRUTURAS PARA UTILIZAR AS TRÊS FUNÇÕES ABAIXO

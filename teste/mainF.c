@@ -97,7 +97,11 @@ int main(int argc, char *argv[])
 		 	unsigned char *bufferS;
 			int i, teste;
 
-		 	error = FATformat(16);
+		 	error = FATformat(8);
+
+			printf("c : %d\n", superblock.clusterSize);
+			printf("m : %d\n", SECTOR_SIZE * superblock.SectorsPerCluster );
+
 
 			teste = CreateDir("/teste");
 
@@ -114,7 +118,7 @@ int main(int argc, char *argv[])
 
 			printf("DIR : %d\n\n\n", sizeof(DIRENT2));
 
-			int sector = 2;
+			int sector = 9;
 			int error = read_sector (sector, testeleitura);
 			if (error) {
 				printf ("read_sector (%d) error = %d\n", sector, error);
