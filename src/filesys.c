@@ -241,7 +241,7 @@ int changeDir(char * path){
 
     return 0;
 }
-
+// Função que separa o último nome de um path
 int separatePath(char * path, char ** FirstStringOutput, char ** SecondStringOutput) {
     const char dir_div = '/';
     int lenghtAux;
@@ -260,89 +260,7 @@ int separatePath(char * path, char ** FirstStringOutput, char ** SecondStringOut
     strcat(*FirstStringOutput,"/");
     return 0;
 }
-int toAbsolutePath(char * path, char * currPath, char ** output) {
-    int i;
-    int numTokens;
-    char ** tokenizedPath;
-    char * cutToken;
-    int bufferSize = (strlen(path) + 1 + strlen(currPath) + 1);
-    char * buffer = malloc(sizeof(char)*bufferSize);
-    char * pathcpy = malloc(sizeof(char)*(strlen(path) + 1));
 
-    strcpy(pathcpy,path);
-
-    if(pathcpy[0] == '/'){
-        buffer[0] = '\0';
-    } else {
-        strcpy(buffer,currPath);
-    }
-
-    numTokens = countFolders(pathcpy, &tokenizedPath);
-
-    for(i = 0; i < numTokens; i++) {
-        if (strcmp(tokenizedPath[i],"..") == 0) {
-            if(strcmp(buffer,"/") != 0){
-                cutToken = strrchr(buffer, '/');
-                *cutToken = '\0';
-            }
-            if(strcmp(buffer,"") == 0) {
-                strcpy(buffer,"/");
-            }
-        } else{
-            if (strcmp(tokenizedPath[i],".") != 0) {
-                if(strcmp(buffer,"/") != 0){
-                    strcat(buffer,"/");
-                }
-                strcat(buffer,tokenizedPath[i]);
-            }
-        }
-    }
-
-    *output = malloc(sizeof(char)*(strlen(buffer)+ 1));
-
-    strcpy(*output, buffer);
-
-    free(buffer);
-    free(pathcpy);
-
-    return 0;
-
-}
-
-int countFolders(char* path, char*** tokenized) {
-    int i;
-    int numFolders = 1;
-    char * pathcpy = malloc(sizeof(char)*(strlen(path)+1));
-    char * pathTok;
-
-    strcpy(pathcpy, path);
-
-    pathTok = strtok(pathcpy,"/");
-
-    while(pathTok != NULL) {
-        pathTok = strtok(NULL,"/");
-        if (pathTok != NULL) {
-            numFolders += 1;
-        }
-    }
-
-    *tokenized = malloc(sizeof(char*)*numFolders);
-
-    strcpy(pathcpy, path);
-
-    pathTok = strtok(pathcpy,"/");
-
-    i = 0;
-    while(pathTok != NULL) {
-        (*tokenized)[i] = malloc(sizeof(char)*(strlen(pathTok)+1));
-        strcpy((*tokenized)[i], pathTok);
-        pathTok = strtok(NULL,"/");
-        i += 1;
-    }
-    free(pathcpy);
-    return numFolders;
-
-}
 // VAMOS TER QUE MODIFICAR AS ESTRUTURAS PARA UTILIZAR AS TRÊS FUNÇÕES ABAIXO
 
 /*
@@ -356,8 +274,6 @@ int link(char * path, char ** output) {
     int pathClusterNo;
     int linkClusterNo;
 
-
-    toAbsolutePath(path, currentPath.absolute, &absolute);
 
     //printf("\nAboslute: %s", absolute);
     separatePath(absolute, &pathToFile, &fileName);

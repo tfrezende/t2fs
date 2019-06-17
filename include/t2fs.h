@@ -17,12 +17,13 @@ typedef unsigned int DWORD;
 #pragma pack(push, 1)
 
 /** Registro com as informa��es da entrada de diret�rio, lida com readdir2 */
-#define MAX_FILE_NAME_SIZE 255
+#define MAX_FILE_NAME_SIZE 31
 
 typedef struct {
     char    name[MAX_FILE_NAME_SIZE+1]; /* Nome do arquivo cuja entrada foi lida do disco      */
     BYTE    fileType;                   /* Tipo do arquivo: regular (0x01) ou diret�rio (0x02) ou link (0x03) */
     DWORD   fileSize;                   /* Numero de bytes do arquivo                          */
+    DWORD   firstCluster;               /* Primeiro cluster do diretório*/
 } DIRENT2;
 
 // Estrutura do superbloco
