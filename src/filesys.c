@@ -270,8 +270,8 @@ DIR2 CreateDir (char *pathname){
       int clusterDir = 0;
       int clusterNewDir = 0;
       int dirSpace = 0;
-      char *dirName = malloc(sizeof(char) * MAX_FILE_NAME_SIZE);
-      char *path = malloc(sizeof(char) * MAX_FILE_NAME_SIZE * 8)   // 8 é um numero arbitrario
+      char *dirName;  // = malloc(sizeof(char) * MAX_FILE_NAME_SIZE);
+      char *path;  // = malloc(sizeof(char) * MAX_FILE_NAME_SIZE * 8);  // 8 é um numero arbitrario
       unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.clusterSize);
       DIRENT2 newDirEnt;
 
@@ -284,13 +284,15 @@ DIR2 CreateDir (char *pathname){
           return -1;
       }
 
-      separatePath(pathname, *dirName, *path);
+
+
+      separatePath(pathname, &dirName, &path);
 
       // Adicionar dirétorio no diretorio pai
 
-      cluster = pathToCluster(path);
+      clusterDir = pathToCluster(path);
 
-      readCluster(cluster, buffer);
+      readCluster(clusterDir, buffer);
 
       dirSpace = convertToDword (buffer);
       dirSpace += 1;
@@ -298,14 +300,14 @@ DIR2 CreateDir (char *pathname){
       strcpy (newDirEnt.name, dirName);
       newDirEnt.fileType = 0x02;
       newDirEnt.fileSize = 0;
-      newDirEnt.firstCluster = cluster;
+      newDirEnt.firstCluster = clusterDir;
 
       strcpy(buffer, newDirEnt.name);                                                                                               // dirName
       memcpy(buffer + sizeof(char) * MAX_FILE_NAME_SIZE, wordToLtlEnd(newDirEnt.fileType), 2);                                      // fileType
-      memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*2, dwordToLtlEnd(newDirEnt.fileSize), 4)          // fileSize
-      memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*6, dwordToLtlEnd(newDirEnt.firstCluster), 4)      // firstCluster
+      memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*2, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
+      memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*6, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
 
-      writeCluster(cluster, buffer, dirSpace * sizeof(DIRENT2 + 1), sizeof(DIRENT2 + 1));
+      writeCluster(clusterDir, buffer, dirSpace * sizeof(DIRENT2) + 1, sizeof(DIRENT2) + 1);
 
       printf("\n\nQueria agradecer primeiramente aos meus pais por todo apoio a mim confiado\n\n\n");
 
@@ -327,8 +329,8 @@ int pathToCluster(char* path) {
     unsigned int currentCluster;
     char* pathTok;
     char* pathcpy = malloc(sizeof(char)*(strlen(path)+1));
-    int folderSize = ( superblock.clusterSize / sizeof(DIRENT2)) );
-    DIRENT2* folderContent = malloc(sizeof(DIRENT2))*( (superblock.clusterSize) / sizeof(DIRENT2)) ));
+    int folderSize = (superblock.clusterSize / sizeof(DIRENT2)) ;
+    DIRENT2* folderContent = malloc( (sizeof(DIRENT2))*( (superblock.clusterSize) / sizeof(DIRENT2)) ) ;
 
     strcpy(pathcpy,path);
 
@@ -379,7 +381,7 @@ int pathToCluster(char* path) {
     return currentCluster;
 }
 
-DIRENT2 readDataClusterFolder(int clusterNo) {
+DIRENT2* readDataClusterFolder(int clusterNo) {
 
     int j;
     int folderSizeInBytes = ((superblock.clusterSize) / sizeof(DIRENT2) );
@@ -387,11 +389,11 @@ DIRENT2 readDataClusterFolder(int clusterNo) {
     unsigned char* buffer = malloc(sizeof(unsigned char)* superblock.clusterSize);
     DIRENT2* folderContent = malloc(folderSizeInBytes);
 
-    if (sector >= superBlock.pFirstBlock && sector <= superBlock.pLastBlock) {
+    if (sector >= superblock.pFirstBlock && sector <= superblock.pLastBlock) {
 
         readCluster(clusterNo, buffer);
 
-        for(j = 0; j < folderSizeInBytes); j++) {
+        for(j = 0; j < folderSizeInBytes ; j++) {
             memcpy(folderContent[j].name, buffer + sizeof(DIRENT2)*j, 31);
             folderContent[j].fileType = (BYTE) *(buffer + 31);
             folderContent[j].fileSize = convertToDword(buffer + 32 + sizeof(DIRENT2)*j);

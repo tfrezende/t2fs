@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 		 	int error = 0;
 		 	unsigned char buffer[100]= {"Teste dessa bagaça 25897554150010589"};
 		 	unsigned char *bufferS;
-			int i;
+			int i, teste;
 
 		 	error = FATformat(16);
 

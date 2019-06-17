@@ -37,7 +37,9 @@ int changeDir(char * path);
 
 int separatePath(char * path, char ** FirstStringOutput, char ** SecondStringOutput);
 
-DIRENT2 readDataClusterFolder(int clusterNo);
+DIRENT2* readDataClusterFolder(int clusterNo);
+
+int pathToCluster(char* path);
 
 typedef struct diskf {
     FILE2 file;
