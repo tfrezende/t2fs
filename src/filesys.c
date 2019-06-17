@@ -88,7 +88,7 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
       superblock.pLastBlock = convertToDword(buffer + 12);   // endereço do último bloco da partição
       memcpy(superblock.partName, buffer + 16, 8);
       superblock.clusterSize = SECTOR_SIZE * sectors_per_block;
-      superblock.RootDirCluster = 1;    // root fixo no setor 0
+      superblock.RootDirCluster = 1;    // root fixo no cluster 1
       superblock.SectorsPerCluster = sectors_per_block;
 
       nClusters = ((superblock.pLastBlock - superblock.pFirstBlock) * SECTOR_SIZE)/superblock.clusterSize;
@@ -96,7 +96,8 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
       FATnext = malloc(sizeof(int)*nClusters);
       FATbitmap = malloc(sizeof(char)*nClusters);
 
-      FATnext[0] = 0;                 // Cluster 0 reservado para as informações de Próxima e Livre
+      FATnext[0] = 0;                   // Cluster 0 reservado para as informações de Próxima e Livre
+      FATbitmap[1] = '1';               // Cluster 1 reservado para o Root
       FATbitmap[0] = '5';
 
       for(i = 1; i < nClusters; i++) {
@@ -216,6 +217,7 @@ int changeDir(char * pathname){
 
     int clusterDir = 0;
     int dirFound = 0;
+    int i;
     char *dirName;
     char *path;
     int folderSizeInBytes = ((superblock.clusterSize) / sizeof(DIRENT2) );
@@ -285,11 +287,13 @@ DIR2 createDir (char *pathname){
 
       int clusterDir = 0;
       int clusterNewDir = 0;
+      int i;
       int dirSpace = 0;
       char *dirName;
       char *path;
-      unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.clusterSize);
+      unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
       DIRENT2 newDirEnt;
+      DIRENT2* freeSpaceFind = malloc ( superblock.clusterSize );
 
       clusterNewDir = FindFreeCluster();
 
@@ -309,32 +313,47 @@ DIR2 createDir (char *pathname){
 
       clusterDir = pathToCluster(path);
 
+      puts(path);
+      printf("cluster pai: %d\n", clusterDir);
+
       readCluster(clusterDir, buffer);
 
-      dirSpace = (DWORD) (buffer[0]);
+      freeSpaceFind = readDataClusterFolder(clusterDir);
+
+      for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
+          if (strcmp(freeSpaceFind[i].name, dirName) == 0)
+            return -1;
+          if (strcmp(freeSpaceFind[i].name, "") == 0){
+              dirSpace = i;
+              break;
+          }
+      }
 
       strcpy (newDirEnt.name, dirName);
       newDirEnt.fileType = 0x02;
       newDirEnt.fileSize = 0;
-      newDirEnt.firstCluster = clusterDir;
+      newDirEnt.firstCluster = clusterNewDir;
 
       strcpy(buffer, newDirEnt.name);                                                                                               // dirName
       memcpy(buffer + sizeof(char) * MAX_FILE_NAME_SIZE, wordToLtlEnd(newDirEnt.fileType), 2);                                      // fileType
       memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*2, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
       memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*6, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
 
-      writeCluster(clusterDir, buffer, (dirSpace * sizeof(DIRENT2)) + 1, sizeof(DIRENT2) + 1);
+      printf("Cluster : %d\n", clusterNewDir);
 
-      dirSpace += 1;
+      writeCluster(clusterDir, buffer, (dirSpace * sizeof(DIRENT2)) , sizeof(DIRENT2) + 1);
 
-      memcpy(buffer, wordToLtlEnd(dirSpace), 1);
-      writeCluster(clusterDir, buffer, 0, 1);
+      printf("Chegou Bitmap\n");
+
+      FATbitmap[clusterNewDir] = '1';
+      puts(FATbitmap);
+      FATwrite();
 
       free(buffer);
+      free(freeSpaceFind);
 
-      //  Livre cluster
+
       return 0;
-
 }
 
 int pathToCluster(char* path) {
@@ -368,6 +387,7 @@ int pathToCluster(char* path) {
 
         while(pathTok != NULL && pathsNo == found && folderInPath) {
             pathsNo += 1;
+            printf("Current Cluster : %d\n", currentCluster );
             folderContent = readDataClusterFolder(currentCluster);
             for(i = 0; i < folderSize; i++) {
                 if (strcmp(folderContent[i].name,pathTok) == 0) {
@@ -403,25 +423,27 @@ int pathToCluster(char* path) {
 DIRENT2* readDataClusterFolder(int clusterNo) {
 
         int j;
-        int folderSizeInBytes = ((superblock.clusterSize) / sizeof(DIRENT2) );
+        int folderSizeInBytes = ( superblock.clusterSize );
         unsigned int sector = superblock.pFirstBlock + superblock.SectorsPerCluster * clusterNo;
-        unsigned char* buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
+        unsigned char *teste = malloc( sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
         DIRENT2* folderContent = malloc(folderSizeInBytes);
 
         if (sector >= superblock.pFirstBlock && sector <= superblock.pLastBlock) {
 
-            readCluster(clusterNo, buffer);
+            readCluster(clusterNo, teste);
 
-            for(j = 0; j < folderSizeInBytes ; j++) {
-                memcpy(folderContent[j].name, buffer + sizeof(DIRENT2)*j, 31);
-                folderContent[j].fileType = (BYTE) *(buffer + 31) + sizeof(DIRENT2)*j;
-                folderContent[j].fileSize = convertToDword(buffer + 32 + sizeof(DIRENT2)*j);
-                folderContent[j].firstCluster = convertToDword(buffer + 36 + sizeof(DIRENT2)*j);
+
+            for(j = 0; j < folderSizeInBytes - 1 ; j += sizeof(DIRENT2)) {
+                memcpy(folderContent[j].name, teste + j, 31);
+                folderContent[j].fileType = (BYTE) ( *(teste + 31) + j);
+                folderContent[j].fileSize = convertToDword(teste + 32 + j);
+                folderContent[j].firstCluster = convertToDword(teste + 36 + j);
             }
-            free(buffer);
+            free(teste);
+            printf("Chegou READATA\n");
             return folderContent;
         }
-        free(buffer);
+        free(teste);
         return NULL;
 }
 

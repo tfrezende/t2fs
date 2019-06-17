@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 
 		if (strcmp(cmd,"e")==0) {			// TESTE DE ESCRITA, SÓ MUDAR OS VALORES DE TESTE E O VALOR DO write_sector
 
-			unsigned char teste[SECTOR_SIZE] = {32305};
+			unsigned char teste[SECTOR_SIZE] = {"32305"};
 
 		//	gets(teste);
 
@@ -93,18 +93,13 @@ int main(int argc, char *argv[])
 		if (strcmp(cmd,"l")==0) {					// TESTE EM GERAL, PODE USAR QUALQUER FUNÇÃO AQUI
 
 		 	int error = 0;
-		 	unsigned char buffer[100]= {"Teste dessa bagaça 25897554150010589"};
-		 	unsigned char *bufferS;
 			int i, teste;
 
 		 	error = FATformat(8);
 
-			printf("c : %d\n", superblock.clusterSize);
-			printf("m : %d\n", SECTOR_SIZE * superblock.SectorsPerCluster );
-
-
-			teste = CreateDir("/teste");
-
+			teste = createDir("/teste");
+			printf("Passou\n");
+			teste = createDir("/teste/novo");
 
 
 			printf("Parece que foi\n");
@@ -115,29 +110,31 @@ int main(int argc, char *argv[])
 		if (strcmp(cmd,"t")==0) {				// TESTE DE LEITURA, MUDAR O VALOR DE SECTOR QUE QUER LER
 
 			unsigned char testeleitura[SECTOR_SIZE];
+			int sector;
 
 			printf("DIR : %d\n\n\n", sizeof(DIRENT2));
 
-			int sector = 9;
-			int error = read_sector (sector, testeleitura);
-			if (error) {
-				printf ("read_sector (%d) error = %d\n", sector, error);
-				continue;
-			}
-			char str[20];
-			int linhaBase = SECTOR_SIZE * sector;
-			int linha, coluna;
-			for (linha=0; linha<16; ++linha) {
-					printf ("%04X  ", linhaBase+16*linha);
-					for (coluna=0; coluna<16; ++coluna) {
-				int index = 16*linha+coluna;
-				char c = testeleitura[index];
-				if (c>=' ' && c<='z') str[coluna]=c;
-				else str[coluna]=' ';
-				printf ("%02X ", c&0xFF);
-					}
-					str[16]='\0';
-					printf (" *%s*\n", str);
+			for(sector = 0; sector < 10; sector ++){
+				int error = read_sector (sector, testeleitura);
+				if (error) {
+					printf ("read_sector (%d) error = %d\n", sector, error);
+					continue;
+				}
+				char str[20];
+				int linhaBase = SECTOR_SIZE * sector;
+				int linha, coluna;
+				for (linha=0; linha<16; ++linha) {
+						printf ("%04X  ", linhaBase+16*linha);
+						for (coluna=0; coluna<16; ++coluna) {
+					int index = 16*linha+coluna;
+					char c = testeleitura[index];
+					if (c>=' ' && c<='z') str[coluna]=c;
+					else str[coluna]=' ';
+					printf ("%02X ", c&0xFF);
+						}
+						str[16]='\0';
+						printf (" *%s*\n", str);
+				}
 			}
 			continue;
 		}
