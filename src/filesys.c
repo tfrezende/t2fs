@@ -97,13 +97,15 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
       FATbitmap = malloc(sizeof(char)*nClusters);
 
       FATnext[0] = 0;                   // Cluster 0 reservado para as informações de Próxima e Livre
-      FATbitmap[1] = '1';               // Cluster 1 reservado para o Root
+
       FATbitmap[0] = '5';
 
       for(i = 1; i < nClusters; i++) {
           FATnext[i] = -1;                  // Inicializa os vetores
           FATbitmap[i] = '0';
       }
+
+      FATbitmap[1] = '1';               // Cluster 1 reservado para o Root
 
       FATwrite();
 
@@ -313,8 +315,9 @@ DIR2 createDir (char *pathname){
 
       clusterDir = pathToCluster(path);
 
-      puts(path);
-      printf("cluster pai: %d\n", clusterDir);
+      puts(FATbitmap);
+      printf("cluster pai : %d\n", clusterDir);
+      printf("cluster add : %d\n", clusterNewDir );
 
       readCluster(clusterDir, buffer);
 
@@ -339,11 +342,11 @@ DIR2 createDir (char *pathname){
       memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*2, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
       memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*6, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
 
-      printf("Cluster : %d\n", clusterNewDir);
+      printf("CHEGOU?\n");
 
       writeCluster(clusterDir, buffer, (dirSpace * sizeof(DIRENT2)) , sizeof(DIRENT2) + 1);
 
-      printf("Chegou Bitmap\n");
+      printf("MAS NÃO CHEGOU CACETE\n");
 
       FATbitmap[clusterNewDir] = '1';
       puts(FATbitmap);
@@ -396,6 +399,7 @@ int pathToCluster(char* path) {
                     if (folderContent[i].fileType != 0x02) {
                         folderInPath = 0;
                     }
+                    break;
                 }
             }
             pathTok = strtok(NULL,"/");
