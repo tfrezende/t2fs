@@ -20,11 +20,17 @@ typedef unsigned int DWORD;
 #define MAX_FILE_NAME_SIZE 31
 
 typedef struct {
-    char    name[MAX_FILE_NAME_SIZE+1]; /* Nome do arquivo cuja entrada foi lida do disco      */
-    BYTE    fileType;                   /* Tipo do arquivo: regular (0x01) ou diret�rio (0x02) ou link (0x03) */
-    DWORD   fileSize;                   /* Numero de bytes do arquivo                          */
-    DWORD   firstCluster;               /* Primeiro cluster do diretório*/
+    char    name[MAX_FILE_NAME_SIZE + 1];   /* Nome do arquivo cuja entrada foi lida do disco      */
+    BYTE    fileType;                      /* Tipo do arquivo: regular (0x01) ou diret�rio (0x02) ou link (0x03) */
+    DWORD   fileSize;                      /* Numero de bytes do arquivo */
+    DWORD   firstCluster;                 /* Primeiro cluster do diretório*/
 } DIRENT2;
+
+typedef struct {
+    BYTE nObjects;                        // numero de objetos (Arquivos, Diretórios, Links) no diretório
+    DIRENT2* Objects                      // Lista de entradas de diretorio
+} DIR
+
 
 // Estrutura do superbloco
 typedef struct SB {

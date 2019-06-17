@@ -112,8 +112,8 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
 }
 
 // Função para apagar um diretório
-DIRENT2 setNullDirent()
-{
+DIRENT2 setNullDirent(){
+
     DIRENT2 dir;
     strcpy(dir.name,"");
     dir.fileType = (DWORD)6; // valor inválido, lixo
@@ -259,6 +259,48 @@ int separatePath(char * path, char ** FirstStringOutput, char ** SecondStringOut
     memcpy(*FirstStringOutput, path, lenghtPath-lenghtAux);
     strcat(*FirstStringOutput,"/");
     return 0;
+}
+
+DIR2 CreateDir (char *pathname){
+  int clusterDir = 0;
+  int clusterNewDir = 0;
+  int dirSpace = 0;
+  char *dirName = malloc(sizeof(char) * MAX_FILE_NAME_SIZE);
+  char *path = malloc(sizeof(char) * MAX_FILE_NAME_SIZE * 8)   // 8 é um numero arbitrario
+  unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
+  DIRENT2 newDirEnt;
+
+  clusterNewDir = FindFreeCluster();
+
+  if (clusterNewDir == -1)
+    return -1;
+
+  separatePath(pathname, *dirName, *path);
+
+  // Adicionar dirétorio no diretorio parti
+
+  cluster = pathToCluster(path)
+
+  readCluster(cluster, buffer)
+
+
+
+  strcpy (newDirEnt.name, dirName);
+  newDirEnt.fileType = 0x02;
+  newDirEnt.fileSize = 0;
+  newDIrEnt.firstCluster = cluster;
+
+
+
+
+
+
+  //  Livre cluster
+
+
+
+
+
 }
 
 // VAMOS TER QUE MODIFICAR AS ESTRUTURAS PARA UTILIZAR AS TRÊS FUNÇÕES ABAIXO
