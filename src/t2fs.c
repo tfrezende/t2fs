@@ -12,9 +12,6 @@ Função:	Informa a identificação dos desenvolvedores do T2FS.
 -----------------------------------------------------------------------------*/
 int identify2 (char *name, int size) {
 
-	// strncpy (name,"Filipe Bachini Lopes - 291401\nMoatan Pedroso Godoy - 246789\nThalles Fernandes Rezende - 288546\n", size);
-	//return 0;
-
 	char *devNames = "Filipe Bachini Lopes - 291401\nMoatan Pedroso Godoy - 246789\nThalles Fernandes Rezende - 288546\n\0";
 
 	if (strlen(devNames) < size) {
@@ -33,11 +30,12 @@ Função:	Formata logicamente o disco virtual t2fs_disk.dat para o sistema de
 -----------------------------------------------------------------------------*/
 int format2 (int sectors_per_block) {
 
-//	if (sectors_per_block != (2 || 16 || 32 || 64 || 128))
-//		return -1;
-//	else
+	if (sectors_per_block == (2) || sectors_per_block == (16) || sectors_per_block == (32) || sectors_per_block == (64) || sectors_per_block ==  (128) ){
 		FATformat(sectors_per_block);
 		return 0;
+	}															// Tem que ver isso aqui, não tá funcionando esse OR
+	else
+		return -1;
 
 }
 
@@ -109,28 +107,43 @@ int seek2 (FILE2 handle, DWORD offset) {
 Função:	Função usada para criar um novo diretório.
 -----------------------------------------------------------------------------*/
 int mkdir2 (char *pathname) {
-	return -1;
+	if (strcmp(pathname, "") == 0)
+		return -1;
+	else
+		return createDir(pathname);
 }
 
 /*-----------------------------------------------------------------------------
 Função:	Função usada para remover (apagar) um diretório do disco.
 -----------------------------------------------------------------------------*/
 int rmdir2 (char *pathname) {
-	return -1;
+	if (strcmp(pathname, "") == 0)
+		return -1;
+	else
+		return deleteDir(pathname);
 }
 
 /*-----------------------------------------------------------------------------
 Função:	Função usada para alterar o CP (current path)
 -----------------------------------------------------------------------------*/
 int chdir2 (char *pathname) {
-	return -1;
+	if(strcmp(pathname,"") == 0)
+		return -1;
+	return changeDir(pathname);
 }
 
 /*-----------------------------------------------------------------------------
 Função:	Função usada para obter o caminho do diretório corrente.
 -----------------------------------------------------------------------------*/
 int getcwd2 (char *pathname, int size) {
-	return -1;
+	if((strlen(currentPath.absolute) + 1) > size){
+		return -1;
+	}
+	else{
+		memset(pathname,'\0',size);
+		strcpy(pathname, currentPath.absolute);
+		return 0;
+	}
 }
 
 /*-----------------------------------------------------------------------------

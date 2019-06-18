@@ -15,7 +15,35 @@ DIRENT2 setNullDirent();
 
 int FATinit();
 
+int FATwrite();
+
+int FATread();
+
 int FATformat (int sectors_per_block);
+
+int *FATnext;
+
+unsigned char *FATbitmap;
+
+int nClusters;
+
+int readCluster(int clusterNo, unsigned char* buffer);
+
+int writeCluster(int clusterNo, unsigned char* buffer, int position, int size);
+
+int FindFreeCluster ();
+
+int changeDir(char * pathname);
+
+int separatePath(char * path, char ** FirstStringOutput, char ** SecondStringOutput);
+
+DIRENT2* readDataClusterFolder(int clusterNo);
+
+int pathToCluster(char* path);
+
+DIR2 createDir (char *pathname);
+
+int deleteDir(char *pathname);
 
 typedef struct diskf {
     FILE2 file;
@@ -29,7 +57,7 @@ DISK_FILE openFiles[10];
 typedef struct currp {
     char* absolute;
     int clusterNo;
-} CURRENT_PATH;                         // OBSERVAR O USO DESSAS ESTRUTURAS E POSSIVEIS UTILIZAÇÕES
+} CURRENT_PATH;
 
 CURRENT_PATH currentPath;
 
