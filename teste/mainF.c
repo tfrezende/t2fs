@@ -103,6 +103,8 @@ int main(int argc, char *argv[])
 		 	error = FATformat(8);
 
 			create2("jubileu");
+<<<<<<< HEAD
+=======
 
 			create2("moatan");
 
@@ -114,6 +116,7 @@ int main(int argc, char *argv[])
 
 			create2("pizza da balaca");
 
+>>>>>>> b415b31f43910ffbd243f4a04cb65e169e56a08f
 
 			continue;
 		}
