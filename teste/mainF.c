@@ -97,10 +97,7 @@ int main(int argc, char *argv[])
 
 		 	error = FATformat(8);
 
-			teste = createDir("/teste");
-			printf("Passou\n");
-			teste = createDir("/teste/novo");
-
+			teste = createDir("/irineu voce nao sabe nem eu");
 
 			printf("Parece que foi\n");
 

@@ -315,10 +315,6 @@ DIR2 createDir (char *pathname){
 
       clusterDir = pathToCluster(path);
 
-      puts(FATbitmap);
-      printf("cluster pai : %d\n", clusterDir);
-      printf("cluster add : %d\n", clusterNewDir );
-
       readCluster(clusterDir, buffer);
 
       freeSpaceFind = readDataClusterFolder(clusterDir);
@@ -338,18 +334,15 @@ DIR2 createDir (char *pathname){
       newDirEnt.firstCluster = clusterNewDir;
 
       strcpy(buffer, newDirEnt.name);                                                                                               // dirName
-      memcpy(buffer + sizeof(char) * MAX_FILE_NAME_SIZE, wordToLtlEnd(newDirEnt.fileType), 2);                                      // fileType
+      memcpy(buffer + sizeof(char) * MAX_FILE_NAME_SIZE, wordToLtlEnd(newDirEnt.fileType), 1);                                      // fileType
       memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*2, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
       memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*6, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
 
-      printf("CHEGOU?\n");
 
       writeCluster(clusterDir, buffer, (dirSpace * sizeof(DIRENT2)) , sizeof(DIRENT2) + 1);
 
-      printf("MAS NÃO CHEGOU CACETE\n");
 
       FATbitmap[clusterNewDir] = '1';
-      puts(FATbitmap);
       FATwrite();
 
       free(buffer);
@@ -399,7 +392,6 @@ int pathToCluster(char* path) {
                     if (folderContent[i].fileType != 0x02) {
                         folderInPath = 0;
                     }
-                    break;
                 }
             }
             pathTok = strtok(NULL,"/");
@@ -439,12 +431,11 @@ DIRENT2* readDataClusterFolder(int clusterNo) {
 
             for(j = 0; j < folderSizeInBytes - 1 ; j += sizeof(DIRENT2)) {
                 memcpy(folderContent[j].name, teste + j, 31);
-                folderContent[j].fileType = (BYTE) ( *(teste + 31) + j);
-                folderContent[j].fileSize = convertToDword(teste + 32 + j);
-                folderContent[j].firstCluster = convertToDword(teste + 36 + j);
+                folderContent[j].fileType = (BYTE) ( *(teste + 32) + j);
+                folderContent[j].fileSize = convertToDword(teste + 33 + j);
+                folderContent[j].firstCluster = convertToDword(teste + 37 + j);
             }
             free(teste);
-            printf("Chegou READATA\n");
             return folderContent;
         }
         free(teste);
