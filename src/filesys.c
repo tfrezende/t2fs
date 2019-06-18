@@ -360,7 +360,7 @@ DIR2 createDir (char *pathname){
       return 0;
 }
 
-int delete(int clusterDir, int fileType){
+int delete(int clusterDir, DIRENT2 record){
 
     int i;
     int found = 0;
@@ -376,17 +376,25 @@ int delete(int clusterDir, int fileType){
 
     readCluster(clusterDir, buffer);
 
+    printf("Leu o cluster\n");
+
     folderFind = readDataClusterFolder(clusterDir);
 
+    printf("Achou o folder\n");
+
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
-        if ((strcmp(folderFind[i].name, dirName)) == 0 && (folderFind[i] == fileType)){
+        if ((strcmp(folderFind[i].name, dirName)) == 0 && (folderFind[i] == record.fileType)){
           found = i;
           break;
       }
     }
 
+    printf("Saiu do for\n");
+
     if(!found)
         return -1;
+
+        printf("Achou\n");
 
     if(fileType != 0x03){
         FATbitmap[folderFind[i].firstCluster] = '0';
@@ -396,26 +404,32 @@ int delete(int clusterDir, int fileType){
 
         }
 
-        if (fileType == 0x02)
+        if (fileType == 0x02){
             writeCluster(folderFind[i].firstCluster, emptyBuffer, 0, superblock.clusterSize);
-
-        if (fileType == 0x03){
-
+            printf("Limpou o cluster\n");
         }
 
     }
+
+    else{   // caiu aqui é softlink
+
+    }
+    // limpa a entrada, todo tipo de arquivo faz isso
     writeCluster(clusterDir, emptyBuffer, (found * sizeof(DIRENT2)) , sizeof(DIRENT2) );
+    printf("Apagou os registros\n");
 
     free(buffer);
     free(emptyBuffer);
+    free(folderFind);
 
     return 0;
 }
 
 int deleteDir(char * pathname){
 
+    DIRENT2 record;
     int clusterDir = 0;
-    int i;
+    //int i;
     //int dirFound = 0;
     char *dirName;
     char *path;
@@ -439,8 +453,13 @@ int deleteDir(char * pathname){
     if (FATbitmap[clusterDir] == '0')
         return -1;
 
-    if(delete(clusterDir, 0x02) == -1)
+    strcpy(record.name, dirName);
+    record.fileType = 0x02;
+
+    if(delete(clusterDir, record) == -1)
         return -1;
+
+    printf("Conseguiu apagar\n");
     /*
     readCluster(clusterDir, buffer);
 
