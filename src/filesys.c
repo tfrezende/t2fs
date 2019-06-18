@@ -342,6 +342,7 @@ DIR2 createDir (char *pathname){
       newDirEnt.fileSize = 0;
       newDirEnt.firstCluster = clusterNewDir;
 
+      memset(buffer,'\0', superblock.sectorSize * superblock.SectorsPerCluster));
 
       memcpy(buffer, newDirEnt.name, strlen(dirName));                                                                                               // dirName
       memcpy(buffer + 31, wordToLtlEnd(newDirEnt.fileType), 1);           // fileType
@@ -627,6 +628,8 @@ int create (int clusterDir, DIRENT2 newDirEnt){
             break;
         }
     }
+
+    memset(buffer,'\0', superblock.sectorSize * superblock.SectorsPerCluster));
 
     memcpy(buffer, newDirEnt.name, strlen(newDirEnt.name));                                                                                               // dirName
     memcpy(buffer + 31, wordToLtlEnd(newDirEnt.fileType), 1);           // fileType
