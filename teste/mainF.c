@@ -102,18 +102,13 @@ int main(int argc, char *argv[])
 
 		 	error = FATformat(8);
 
-			create2("jubileu");
+			mkdir2("/jubileu");
 
-			create2("moatan");
+			mkdir2("/moatan");
 
-			mkdir2("/SUADO");
+			mkdir2("/pizza da balaca");
 
-			chdir2("/SUADO");
-
-			mkdir2("/puta bosta");
-
-			create2("pizza da balaca");
-
+			rmdir2("/moatan");
 
 			continue;
 		}

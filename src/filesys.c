@@ -244,7 +244,6 @@ int changeDir(char * pathname){
 
     readCluster(clusterDir, buffer);
 
-    printf("AGORA É PRA VALER \n\n");
 
     findPath = readDataClusterFolder(clusterDir);
 
@@ -383,7 +382,7 @@ int delete(int clusterDir, DIRENT2 record){
     printf("Achou o folder\n");
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
-        if ((strcmp(folderFind[i].name, dirName)) == 0 && (folderFind[i] == record.fileType)){
+        if ((strcmp(folderFind[i].name, dirName)) == 0 && (folderFind[i].fileType == record.fileType)){
           found = i;
           break;
       }
