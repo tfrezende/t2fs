@@ -94,10 +94,19 @@ int main(int argc, char *argv[])
 
 		 	int error = 0;
 			int i, teste;
+			char *pathname = malloc (sizeof(char) * 50);
 
 		 	error = FATformat(8);
 
-			teste = createDir("/irineu voce nao sabe nem eu");
+			teste = createDir("/teste");
+
+			puts(currentPath.absolute);
+			printf("%d\n", currentPath.clusterNo);
+
+			teste = changeDir("/teste");
+
+			puts(currentPath.absolute);
+			printf("%d\n", currentPath.clusterNo);
 
 			printf("Parece que foi\n");
 

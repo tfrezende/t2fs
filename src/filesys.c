@@ -222,8 +222,8 @@ int changeDir(char * pathname){
     int i;
     char *dirName;
     char *path;
-    int folderSizeInBytes = ((superblock.clusterSize) / sizeof(DIRENT2) );
     unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.clusterSize);
+    DIRENT2 *findPath = malloc ( superblock.clusterSize );
 
     if(strcmp(pathname, "/") == 0){
         // Se o path contiver somente "/" vai para o root
@@ -231,6 +231,7 @@ int changeDir(char * pathname){
         currentPath.absolute = malloc(sizeof(char) * 2);
         strcpy(currentPath.absolute, pathname);
         currentPath.clusterNo = superblock.RootDirCluster;
+        return 0;
     }
 
     if(separatePath(pathname, &path, &dirName) != 0)
@@ -243,12 +244,16 @@ int changeDir(char * pathname){
 
     readCluster(clusterDir, buffer);
 
-    for (i = 0; i < folderSizeInBytes; i += sizeof(DIRENT2) ){
-        if ( (strcmp( (char *) buffer[i], dirName) ) && ( (BYTE) buffer[i + 31] == 0x02) )
-            dirFound = 1;
+    findPath = readDataClusterFolder(clusterDir);
+
+    for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
+        if ((strcmp(findPath[i].name, dirName) == 0 ) && findPath[i].fileType == 0x02 ){
+          dirFound = 1;
+          break;
+        }
     }
 
-    if(!dirFound)
+    if(dirFound == 0)
         return -1;
 
     free(currentPath.absolute);
@@ -333,7 +338,7 @@ DIR2 createDir (char *pathname){
       newDirEnt.fileSize = 0;
       newDirEnt.firstCluster = clusterNewDir;
 
-      strcpy(buffer, newDirEnt.name);                                                                                               // dirName
+      memcpy(buffer, newDirEnt.name, 31);                                                                                               // dirName
       memcpy(buffer + sizeof(char) * MAX_FILE_NAME_SIZE, wordToLtlEnd(newDirEnt.fileType), 1);                                      // fileType
       memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*2, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
       memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*6, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
