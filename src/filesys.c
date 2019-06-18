@@ -505,6 +505,7 @@ DIRENT2* readDataClusterFolder(int clusterNo) {
         free(teste);
         return NULL;
 }
+<<<<<<< HEAD
 
 FILE2 createFile(char * filename){
     char * absolute;
@@ -623,3 +624,5 @@ int makeAnewHandle(){
     //se chegou até aqui é pq n encontrou nenhuma posição no array de 10 para botar um novo arquivo
     return -1;
 }
+=======
+>>>>>>> f426da76a509970959ce8d7e723f6851357fee1a
