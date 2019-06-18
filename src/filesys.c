@@ -390,7 +390,7 @@ int deleteDir(char * pathname){
     folderFind = readDataClusterFolder(clusterDir);
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
-        if (strcmp(folderFind[i].name, dirName) == 0){
+        if ( (strcmp(folderFind[i].name, dirName) == 0) && (folderFind[i].fileType == 0x02) ){
           dirFound = i;
           break;
       }
@@ -412,6 +412,7 @@ int deleteDir(char * pathname){
 
 return 0;
 }
+
 
 int pathToCluster(char* path) {
 
@@ -507,6 +508,7 @@ int isFolder(char *pathname){
 
     char *dirName = malloc(sizeof(char) * 31);
     char *path;
+    int i;
     int clusterSearch;
     unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
     DIRENT2* folderFind = malloc ( superblock.clusterSize );
@@ -516,7 +518,7 @@ int isFolder(char *pathname){
 
     readCluster(clusterSearch, buffer);
 
-    folderFind = readDataClusterFolder(clusterDir);
+    folderFind = readDataClusterFolder(clusterSearch);
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
         if ( (strcmp(folderFind[i].name, dirName) == 0) && (folderFind[i].fileType = 0x02) )
@@ -527,19 +529,53 @@ int isFolder(char *pathname){
 
 }
 
+int create (int clusterDir, DIRENT2 newDirEnt){
+
+    int i;
+    int dirSpace = 0;
+    char *entName = malloc(sizeof(char) * 31);
+    char *path;
+    unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
+    DIRENT2 newDirEnt;
+    DIRENT2* freeSpaceFind = malloc ( superblock.clusterSize );
+
+
+    readCluster(clusterDir, buffer);
+
+    freeSpaceFind = readDataClusterFolder(clusterDir);
+
+    for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
+        if (strcmp(freeSpaceFind[i].name, dirName) == 0)
+          return -1;
+        if (strcmp(freeSpaceFind[i].name, "") == 0){
+            dirSpace = i;
+            break;
+        }
+    }
+
+    memcpy(buffer, newDirEnt.name, strlen(dirName));                                                                                               // dirName
+    memcpy(buffer + 31, wordToLtlEnd(newDirEnt.fileType), 1);           // fileType
+    memcpy(buffer + 32, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
+    memcpy(buffer + 36, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
+
+    writeCluster(clusterDir, buffer, (dirSpace * sizeof(DIRENT2)) , sizeof(DIRENT2));
+
+    free(buffer);
+    free(freeSpaceFind);
+    return ;
+}
+
 FILE2 createFile(char * filename){
-    char * firstOut;
-    char * secondOut;
+    char *path;
+    char *dirName;
     int firstClusterFreeInFAT;
-    int handle;
-    handle = makeAnewHandle();
+    int handle = makeAnewHandle();
     int clusterToRecordFile;
-    char *linkOutput;
     DIRENT2 toRecord;
 
-    separatePath(currentPath.absolute, &firstOut, &secondOut)       // A principio vai criar no caminho corrente
+    separatePath(currentPath.absolute, &path, &dirName)       // A principio vai criar no caminho corrente
 
-    clusterToRecordFile = pathToCluster(secondOut);
+    clusterToRecordFile = pathToCluster(dirName);
 
 //caminho inexistente
     if(clusterToRecordFile == -1)
@@ -589,7 +625,7 @@ FILE2 createFile(char * filename){
     toRecord.firstCluster = firstClusterFreeInFAT;
 
 //escrita no diretorio
-    if(writeDataClusterFolder(clusterToRecordFile, toRecord) == - 1){//se n tiver espaço na folder
+    if(create(clusterToRecordFile, toRecord) == - 1){       //se n tiver espaço na folder
         return -1;
     }
 
@@ -597,8 +633,8 @@ FILE2 createFile(char * filename){
     FATbitmap[firstClusterFreeInFAT] = '1';
     FATwrite();
 
-//retorna o handle já colocando ele no array de opens
-    return (openFile (filename));
+//retorna o handle já colocando ele no array de opens         openFile (filename)
+    return (5);
 }
 
 int makeAnewHandle(){
@@ -612,6 +648,8 @@ int makeAnewHandle(){
     //se chegou até aqui é pq n encontrou nenhuma posição no array de 10 para botar um novo arquivo
     return -1;
 }
+
+/*
 
 int deleteFile(char * filename){
     char * absolute;
@@ -755,3 +793,5 @@ int closeDir(DIR2 handle){
     return -1;
 
 }
+
+*/
