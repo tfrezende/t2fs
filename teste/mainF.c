@@ -46,8 +46,6 @@ int main(int argc, char *argv[])
 				continue;
 			}
 
-			rmdir2("/outroteste");
-
 			int sector = 0;
 			int error = read_sector (sector, buffer);
 			if (error) {
@@ -105,6 +103,20 @@ int main(int argc, char *argv[])
 		 	error = FATformat(8);
 
 			create2("jubileu");
+<<<<<<< HEAD
+=======
+
+			create2("moatan");
+
+			mkdir2("/SUADO");
+
+			chdir2("/SUADO");
+
+			mkdir2("/puta bosta");
+
+			create2("pizza da balaca");
+
+>>>>>>> b415b31f43910ffbd243f4a04cb65e169e56a08f
 
 			continue;
 		}

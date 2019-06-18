@@ -360,6 +360,65 @@ DIR2 createDir (char *pathname){
       return 0;
 }
 
+<<<<<<< HEAD
+=======
+int deleteDir(char * pathname){
+
+    int clusterDir = 0;
+    int i;
+    int dirFound = 0;
+    char *dirName;
+    char *path;
+    unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
+    unsigned char *emptyBuffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
+    DIRENT2* folderFind = malloc ( superblock.clusterSize );
+
+    memset(emptyBuffer, '\0', superblock.sectorSize * superblock.SectorsPerCluster);
+
+    if (strcmp(pathname,"/") == 0) {
+        return -1;
+    }
+
+    separatePath(pathname, &path, &dirName);
+
+    if(strlen(dirName) <= 0)
+      return -1;
+
+    clusterDir = pathToCluster(path);
+
+    if (FATbitmap[clusterDir] == '0')
+        return -1;
+
+    readCluster(clusterDir, buffer);
+
+    folderFind = readDataClusterFolder(clusterDir);
+
+    for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
+        if ( (strcmp(folderFind[i].name, dirName) == 0) && (folderFind[i].fileType == 0x02) ){
+          dirFound = i;
+          break;
+      }
+    }
+
+    if(!dirFound)
+        return -1;
+
+    FATbitmap[folderFind[i].firstCluster] = '0';
+    FATwrite();
+
+    writeCluster(folderFind[i].firstCluster, emptyBuffer, 0, superblock.clusterSize);       // Limpa o cluster
+
+    writeCluster(clusterDir, emptyBuffer, (dirFound * sizeof(DIRENT2)) , sizeof(DIRENT2) ); // Limpa a entrada de diretorio
+
+    free(buffer);
+    free(emptyBuffer);
+
+
+return 0;
+}
+
+
+>>>>>>> b415b31f43910ffbd243f4a04cb65e169e56a08f
 int pathToCluster(char* path) {
 
         int i;
@@ -454,6 +513,7 @@ int isFolder(char *pathname){
 
     char *dirName = malloc(sizeof(char) * 31);
     char *path;
+    int i;
     int clusterSearch;
     unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
     DIRENT2* folderFind = malloc ( superblock.clusterSize );
@@ -463,7 +523,7 @@ int isFolder(char *pathname){
 
     readCluster(clusterSearch, buffer);
 
-    folderFind = readDataClusterFolder(clusterDir);
+    folderFind = readDataClusterFolder(clusterSearch);
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
         if ( (strcmp(folderFind[i].name, dirName) == 0) && (folderFind[i].fileType = 0x02) )
@@ -478,10 +538,14 @@ int create (int clusterDir, DIRENT2 newDirEnt){
 
     int i;
     int dirSpace = 0;
+<<<<<<< HEAD
     char *entName = malloc(sizeof(char) * 31);
     char *path;
     unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
     DIRENT2 newDirEnt;
+=======
+    unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
+>>>>>>> b415b31f43910ffbd243f4a04cb65e169e56a08f
     DIRENT2* freeSpaceFind = malloc ( superblock.clusterSize );
 
 
@@ -490,15 +554,22 @@ int create (int clusterDir, DIRENT2 newDirEnt){
     freeSpaceFind = readDataClusterFolder(clusterDir);
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
+<<<<<<< HEAD
         if (strcmp(freeSpaceFind[i].name, dirName) == 0)
           return -1;
+=======
+>>>>>>> b415b31f43910ffbd243f4a04cb65e169e56a08f
         if (strcmp(freeSpaceFind[i].name, "") == 0){
             dirSpace = i;
             break;
         }
     }
 
+<<<<<<< HEAD
     memcpy(buffer, newDirEnt.name, strlen(dirName));                                                                                               // dirName
+=======
+    memcpy(buffer, newDirEnt.name, strlen(newDirEnt.name));                                                                                               // dirName
+>>>>>>> b415b31f43910ffbd243f4a04cb65e169e56a08f
     memcpy(buffer + 31, wordToLtlEnd(newDirEnt.fileType), 1);           // fileType
     memcpy(buffer + 32, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
     memcpy(buffer + 36, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
@@ -507,22 +578,29 @@ int create (int clusterDir, DIRENT2 newDirEnt){
 
     free(buffer);
     free(freeSpaceFind);
+<<<<<<< HEAD
     return ;
+=======
+    return 0;
+>>>>>>> b415b31f43910ffbd243f4a04cb65e169e56a08f
 }
 
 FILE2 createFile(char * filename){
-    char * firstOut;
-    char * secondOut;
+    char *path;
+    char *dirName;
     int firstClusterFreeInFAT;
-    int handle;
-    handle = makeAnewHandle();
+    int handle = makeAnewHandle();
     int clusterToRecordFile;
-    char *linkOutput;
     DIRENT2 toRecord;
 
-    separatePath(currentPath.absolute, &firstOut, &secondOut)       // A principio vai criar no caminho corrente
+    memset(&toRecord,'\0', sizeof(DIRENT2));
 
-    clusterToRecordFile = pathToCluster(secondOut);
+    separatePath(currentPath.absolute, &path, &dirName);      // A principio vai criar no caminho corrente
+
+    clusterToRecordFile = pathToCluster(dirName);
+
+    if(strcmp(path, "/") == 0)
+        clusterToRecordFile = superblock.RootDirCluster;
 
     if(strcmp(path, "/") == 0)
         clusterToRecordFile = superblock.RootDirCluster;
@@ -576,7 +654,7 @@ FILE2 createFile(char * filename){
 
 
 //escrita no diretorio
-    if(writeDataClusterFolder(clusterToRecordFile, toRecord) == - 1){//se n tiver espaço na folder
+    if(create(clusterToRecordFile, toRecord) == - 1){       //se n tiver espaço na folder
         return -1;
     }
 
@@ -584,8 +662,8 @@ FILE2 createFile(char * filename){
     FATbitmap[firstClusterFreeInFAT] = '1';
     FATwrite();
 
-//retorna o handle já colocando ele no array de opens
-    return (openFile (filename));
+//retorna o handle já colocando ele no array de opens         openFile (filename)
+    return (5);
 }
 
 int makeAnewHandle(){
@@ -600,6 +678,117 @@ int makeAnewHandle(){
     return -1;
 }
 
+<<<<<<< HEAD
+=======
+/*
+
+int deleteFile(char * filename){
+    char * absolute;
+    char * firstOut;
+    char * secondOut;
+    int clusterOfDir;//cluster que contem o diretorio que contem o arquivo
+    int clusterToDelete;//cluster que tem q apagar
+    unsigned char* bufferWithNulls = malloc(sizeof(unsigned char)*SECTOR_SIZE*superBlock.SectorsPerCluster);
+    DWORD FATrepresentation = 0;
+    BYTE typeToDelete = TYPEVAL_REGULAR;
+    char *linkOutput;
+    //variaveis para a verificação
+    int i;
+    int isFile = 0;
+    int clusterByteSize = sizeof(unsigned char)*SECTOR_SIZE*superBlock.SectorsPerCluster;
+    unsigned char* buffer = malloc(clusterByteSize);
+    //
+
+    memset(bufferWithNulls,'\0',SECTOR_SIZE*superBlock.SectorsPerCluster);// coloca /0 em todo o buffer
+
+    if(toAbsolutePath(filename, currentPath.absolute, &absolute)){
+        //printf("\nERRO INESPERADO\n");//se der erro aqui eu n sei pq, tem q ver ainda
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+        return -1;
+    }
+
+    if(separatePath(absolute, &firstOut, &secondOut)){
+        //printf("\nERRO INESPERADo\n");//se der erro aqui eu n sei pq, tem q ver ainda
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+        return -1;
+    }
+
+    if(!isRightName(secondOut)){
+        return -1;
+    }
+
+    if((clusterOfDir = pathToCluster(firstOut)) == -1){
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+         return -1;
+    }
+
+    if((clusterToDelete = pathToCluster(absolute))== -1){
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+        return -1;
+    }
+
+//Verificação de se é um TYPE FILE mesmo
+    readCluster(clusterOfDir, buffer);
+    for(i = 0; i < clusterByteSize; i+= sizeof(struct t2fs_record)) {
+        if ( (strcmp((char *)buffer+i+1, secondOut) == 0) && (((BYTE) buffer[i]) == typeToDelete) && !isFile ) {
+            isFile = 1;
+        }
+    }
+    //se n for do tipo File, n pode deletar.
+    if(isFile == 0){
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+        return -1;
+    }
+//Fim da verificação
+
+    struct t2fs_record folderContent;
+
+    folderContent.TypeVal = TYPEVAL_INVALIDO;
+    strcpy(folderContent.name, "\0");
+    folderContent.bytesFileSize = 0;
+    folderContent.clustersFileSize = 0;
+    folderContent.firstCluster = 0;
+
+    if(writeZeroClusterFolderByName(clusterOfDir, folderContent, secondOut, typeToDelete) == -1){
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+        return -1;
+    }
+
+    closeFileByFristCluster(clusterToDelete);
+
+    while( FATrepresentation != END_OF_FILE && FATrepresentation != BAD_SECTOR){
+
+        readInFAT(clusterToDelete,&FATrepresentation);//le o proximo cluster que tem conteudo do arquivo
+        writeInFAT(clusterToDelete, 0);//marca 0 naquela represetanção, pra libera-lá
+
+        //escreve o buffer cheio de nulls dentro daquele cluster q tinha o arquivo.
+        writeCluster(clusterToDelete,bufferWithNulls,0,SECTOR_SIZE*superBlock.SectorsPerCluster);
+
+        //atualiza o novo cluster
+        if(FATrepresentation != END_OF_FILE && FATrepresentation != BAD_SECTOR){
+            clusterToDelete = (int) FATrepresentation;
+        }
+
+    }
+    free(absolute);
+    free(firstOut);
+    free(secondOut);
+    return 0;
+}
+
+>>>>>>> b415b31f43910ffbd243f4a04cb65e169e56a08f
 int closeFile(FILE2 handle){
 
     int i;
@@ -636,3 +825,5 @@ int closeDir(DIR2 handle){
     return -1;
 
 }
+
+*/

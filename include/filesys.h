@@ -47,11 +47,13 @@ int deleteDir(char *pathname);
 
 int isFolder(char *pathname);
 
+int makeAnewHandle();
+
 int closeFile(FILE2 handle);
 
 int closeDir(DIR2 handle);
 
-int deleteFile(char * filename);
+//int deleteFile(char * filename);
 
 typedef struct diskf {
     FILE2 file;
