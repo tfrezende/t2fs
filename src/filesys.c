@@ -244,7 +244,6 @@ int changeDir(char * pathname){
 
     readCluster(clusterDir, buffer);
 
-    printf("AGORA É PRA VALER \n\n");
 
     findPath = readDataClusterFolder(clusterDir);
 
