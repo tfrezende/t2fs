@@ -101,11 +101,23 @@ int main(int argc, char *argv[])
 
 		 	error = FATformat(8);
 
+<<<<<<< HEAD
 			createDir("/teste");
 
 			createDir("/outroteste");
 
 			createDir("/maisumteste");
+=======
+			teste = createDir("/teste");
+
+			puts(currentPath.absolute);
+			printf("%d\n", currentPath.clusterNo);
+
+			teste = changeDir("/teste");
+
+			puts(currentPath.absolute);
+			printf("%d\n", currentPath.clusterNo);
+>>>>>>> f9c2432b93a5b8ecbe9e6a0419c0b9ce07e4c085
 
 			printf("Parece que foi\n");
 
@@ -117,6 +129,11 @@ int main(int argc, char *argv[])
 			unsigned char testeleitura[SECTOR_SIZE];
 			int sector;
 
+<<<<<<< HEAD
+=======
+			printf("DIR : %d\n\n\n", sizeof(DIRENT2));
+
+>>>>>>> f9c2432b93a5b8ecbe9e6a0419c0b9ce07e4c085
 			for(sector = 0; sector < 10; sector ++){
 				int error = read_sector (sector, testeleitura);
 				if (error) {

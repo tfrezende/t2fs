@@ -327,7 +327,10 @@ DIR2 createDir (char *pathname){
       freeSpaceFind = readDataClusterFolder(clusterDir);
 
       for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
+<<<<<<< HEAD
           puts(freeSpaceFind[i].name);
+=======
+>>>>>>> f9c2432b93a5b8ecbe9e6a0419c0b9ce07e4c085
           if (strcmp(freeSpaceFind[i].name, dirName) == 0)
             return -1;
           if (strcmp(freeSpaceFind[i].name, "") == 0){
@@ -342,11 +345,19 @@ DIR2 createDir (char *pathname){
       newDirEnt.firstCluster = clusterNewDir;
 
       memcpy(buffer, newDirEnt.name, 31);                                                                                               // dirName
+<<<<<<< HEAD
       memcpy(buffer + 31, wordToLtlEnd(newDirEnt.fileType), 1);           // fileType
       memcpy(buffer + 32, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
       memcpy(buffer + 36, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
 
       writeCluster(clusterDir, buffer, (dirSpace * sizeof(DIRENT2)) , sizeof(DIRENT2));
+=======
+      memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE), wordToLtlEnd(newDirEnt.fileType), 1);                                      // fileType
+      memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*2, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
+      memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*6, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
+
+      writeCluster(clusterDir, buffer, (dirSpace * sizeof(DIRENT2)) , sizeof(DIRENT2) + 1);
+>>>>>>> f9c2432b93a5b8ecbe9e6a0419c0b9ce07e4c085
 
       FATbitmap[clusterNewDir] = '1';
       FATwrite();
@@ -359,7 +370,10 @@ DIR2 createDir (char *pathname){
 }
 
 int deleteDir(char * pathname){
+<<<<<<< HEAD
 
+=======
+>>>>>>> f9c2432b93a5b8ecbe9e6a0419c0b9ce07e4c085
     int clusterDir = 0;
     int i;
     int dirFound = 0;
@@ -367,6 +381,10 @@ int deleteDir(char * pathname){
     char *path;
     unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
     unsigned char *emptyBuffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
+<<<<<<< HEAD
+=======
+    DIRENT2 newDirEnt;
+>>>>>>> f9c2432b93a5b8ecbe9e6a0419c0b9ce07e4c085
     DIRENT2* folderFind = malloc ( superblock.clusterSize );
 
     memset(emptyBuffer, '\0', superblock.sectorSize * superblock.SectorsPerCluster);
@@ -382,7 +400,11 @@ int deleteDir(char * pathname){
 
     clusterDir = pathToCluster(path);
 
+<<<<<<< HEAD
     if ( (clusterDir == 0) || (clusterDir == 1) )
+=======
+    if ((clusterDir == 0) || (clusterDir == 1)
+>>>>>>> f9c2432b93a5b8ecbe9e6a0419c0b9ce07e4c085
         return -1;
 
     readCluster(clusterDir, buffer);
@@ -390,15 +412,24 @@ int deleteDir(char * pathname){
     folderFind = readDataClusterFolder(clusterDir);
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
+<<<<<<< HEAD
         if (strcmp(folderFind[i].name, dirName) == 0)
           dirFound = i;
           break;
+=======
+        if (strcmp(freeSpaceFind[i].name, dirName) == 0)
+          dirFound = 1;
+>>>>>>> f9c2432b93a5b8ecbe9e6a0419c0b9ce07e4c085
     }
 
     if(!dirFound)
         return -1;
 
+<<<<<<< HEAD
     writeCluster(clusterDir, emptyBuffer, (dirFound * sizeof(DIRENT2)) , sizeof(DIRENT2) + 1);
+=======
+    writeCluster(clusterDir, emptyBuffer, (dirSpace * sizeof(DIRENT2)) , sizeof(DIRENT2) + 1);
+>>>>>>> f9c2432b93a5b8ecbe9e6a0419c0b9ce07e4c085
 
     if(strcmp(buffer, "") == 0){
         FATbitmap[clusterDir] = '0';
@@ -489,10 +520,17 @@ DIRENT2* readDataClusterFolder(int clusterNo) {
 
 
             for(j = 0; j < folderSizeInBytes - 1 ; j += sizeof(DIRENT2)) {
+<<<<<<< HEAD
                 memcpy(folderContent[j].name, teste + j, 31);
                 folderContent[j].fileType = (BYTE) ( *(teste + 31 + j) );
                 folderContent[j].fileSize = convertToDword(teste + 32 + j);
                 folderContent[j].firstCluster = convertToDword(teste + 36 + j);
+=======
+                memcpy(folderContent[j].name, teste + j, 30);
+                folderContent[j].fileType = (BYTE) ( *(teste + 31) + j);
+                folderContent[j].fileSize = convertToDword(teste + 32 + j);
+                folderContent[j].firstCluster = convertToDword(teste + 37 + j);
+>>>>>>> f9c2432b93a5b8ecbe9e6a0419c0b9ce07e4c085
             }
             free(teste);
             return folderContent;
