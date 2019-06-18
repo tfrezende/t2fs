@@ -298,7 +298,7 @@ DIR2 createDir (char *pathname){
       int clusterNewDir = 0;
       int i;
       int dirSpace = 0;
-      char *dirName;
+      char *dirName = malloc(sizeof(char) * 31);
       char *path;
       unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
       DIRENT2 newDirEnt;
@@ -342,12 +342,12 @@ DIR2 createDir (char *pathname){
       newDirEnt.firstCluster = clusterNewDir;
 
 
-      memcpy(buffer, newDirEnt.name, 31);                                                                                               // dirName
+      memcpy(buffer, newDirEnt.name, strlen(dirName));                                                                                               // dirName
       memcpy(buffer + 31, wordToLtlEnd(newDirEnt.fileType), 1);           // fileType
       memcpy(buffer + 32, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
       memcpy(buffer + 36, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
 
-      writeCluster(clusterDir, buffer, (dirSpace * sizeof(DIRENT2)) , sizeof(DIRENT2) + 1);
+      writeCluster(clusterDir, buffer, (dirSpace * sizeof(DIRENT2)) , sizeof(DIRENT2));
 
       FATbitmap[clusterNewDir] = '1';
       FATwrite();
@@ -385,28 +385,29 @@ int deleteDir(char * pathname){
     if (FATbitmap[clusterDir] == '0')
         return -1;
 
-    if ( (clusterDir == 0) || (clusterDir == 1) )
-        return -1;
-
     readCluster(clusterDir, buffer);
 
     folderFind = readDataClusterFolder(clusterDir);
 
+    puts(dirName);
+
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
-        if (strcmp(folderFind[i].name, dirName) == 0)
+        puts(folderFind[i].name);
+        if (strcmp(folderFind[i].name, dirName) == 0){
           dirFound = i;
           break;
+      }
     }
 
     if(!dirFound)
         return -1;
 
-    writeCluster(clusterDir, emptyBuffer, (dirFound * sizeof(DIRENT2)) , sizeof(DIRENT2) );
+    FATbitmap[folderFind[i].firstCluster] = '0';
+    FATwrite();
 
-    if(strcmp(buffer, "") == 0){
-        FATbitmap[clusterDir] = '0';
-        FATwrite();
-    }
+    writeCluster(folderFind[i].firstCluster, emptyBuffer, 0, superblock.clusterSize);       // Limpa o cluster
+
+    writeCluster(clusterDir, emptyBuffer, (dirFound * sizeof(DIRENT2)) , sizeof(DIRENT2) ); // Limpa a entrada de diretorio
 
     free(buffer);
     free(emptyBuffer);

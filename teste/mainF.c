@@ -30,6 +30,9 @@ int main(int argc, char *argv[])
 		cmd = strtok(command, " ");
 
 		if (strcmp(cmd,"?")==0) {
+
+			mkdir2("/HORA DA VDD");
+
 			help();
 			continue;
 		}
@@ -43,7 +46,7 @@ int main(int argc, char *argv[])
 				continue;
 			}
 
-			deleteDir("/outroteste");
+			rmdir2("/outroteste");
 
 			int sector = 0;
 			int error = read_sector (sector, buffer);
@@ -101,13 +104,11 @@ int main(int argc, char *argv[])
 
 		 	error = FATformat(8);
 
-			printf("size : %d\n", sizeof(DIRENT2));
+			mkdir2("/teste");
 
-			createDir("/teste");
+			mkdir2("/outroteste");
 
-			createDir("/outroteste");
-
-			createDir("/maisumteste");
+			mkdir2("/maisumteste");
 
 			printf("Parece que foi\n");
 
