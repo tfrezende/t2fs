@@ -389,10 +389,7 @@ int deleteDir(char * pathname){
 
     folderFind = readDataClusterFolder(clusterDir);
 
-    puts(dirName);
-
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
-        puts(folderFind[i].name);
         if (strcmp(folderFind[i].name, dirName) == 0){
           dirFound = i;
           break;
@@ -505,10 +502,32 @@ DIRENT2* readDataClusterFolder(int clusterNo) {
         free(teste);
         return NULL;
 }
-<<<<<<< HEAD
+
+int isFolder(char *pathname){
+
+    char *dirName = malloc(sizeof(char) * 31);
+    char *path;
+    int clusterSearch;
+    unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
+    DIRENT2* folderFind = malloc ( superblock.clusterSize );
+
+    separatePath(pathname, &path, &dirName);
+    clusterSearch = pathToCluster(path);
+
+    readCluster(clusterSearch, buffer);
+
+    folderFind = readDataClusterFolder(clusterDir);
+
+    for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
+        if ( (strcmp(folderFind[i].name, dirName) == 0) && (folderFind[i].fileType = 0x02) )
+          return 1;
+    }
+
+    return 0;
+
+}
 
 FILE2 createFile(char * filename){
-    char * absolute;
     char * firstOut;
     char * secondOut;
     int firstClusterFreeInFAT;
@@ -516,52 +535,25 @@ FILE2 createFile(char * filename){
     handle = makeAnewHandle();
     int clusterToRecordFile;
     char *linkOutput;
+    DIRENT2 toRecord;
 
+    separatePath(currentPath.absolute, &firstOut, &secondOut)       // A principio vai criar no caminho corrente
 
-    if(link(filename, &linkOutput)== -1)
-            return -1;
+    clusterToRecordFile = pathToCluster(secondOut);
 
-    if(toAbsolutePath(linkOutput, currentPath.absolute, &absolute)){
-        //printf("\nERRO INESPERADO\n");//se der erro aqui eu n sei pq, tem q ver ainda
-        return -1;
-    }
-
-    if(separatePath(absolute, &firstOut, &secondOut)){
-        //printf("\nERRO INESPERADo\n");//se der erro aqui eu n sei pq, tem q ver ainda
-        return -1;
-    }
-
-    if(!isRightName(secondOut)){
-        return -1;
-    }
-
-    clusterToRecordFile = pathToCluster(firstOut);
 //caminho inexistente
-    if(clusterToRecordFile == -1){
+    if(clusterToRecordFile == -1)
         return -1;
-    }
 
-//arquivo sem nome
-    if(strlen(secondOut) == 0){
-        free(absolute);
-        free(firstOut);
-        free(secondOut);
+
+//Bitmap liberado
+    if(FATbitmap[clusterToRecordFile] == '0')
         return -1;
-    }
-//diretorios n podem ter esse nome
-    if(!(isRightName(secondOut))){
-        free(absolute);
-        free(firstOut);
-        free(secondOut);
-        return -1;
-    }
+
 //n tinha espaço para adicionar um novo arquivos
-    if(handle == -1){
-        free(absolute);
-        free(firstOut);
-        free(secondOut);
+    if(handle == -1)
         return -1;
-    }
+
 
 //se ja tiver um arquivo com esse nome nesse diretorio
 //TODO: TEM Q APGAR O TEM E COLOCAR O NOVO.
@@ -585,29 +577,25 @@ FILE2 createFile(char * filename){
     }*/
 
 //se n achar um cluster livre na fat
-    if(findFATOpenCluster(&firstClusterFreeInFAT) == -1){
-        free(absolute);
-        free(firstOut);
-        free(secondOut);
-        return -1;
-    }
+    firstClusterFreeInFAT = FindFreeCluster();
 
-//criação das estruturas
-    struct t2fs_record toRecord;
+    if(firstClusterFreeInFAT == -1)
+        return -1;
 
 //declaração de seus atributos
-    toRecord.TypeVal = TYPEVAL_REGULAR;
-    strcpy(toRecord.name, secondOut);
-    toRecord.bytesFileSize = 0;
-    toRecord.clustersFileSize = 1;
+    strcpy(toRecord.name, filename);
+    toRecord.fileType = 0x01;
+    toRecord.fileSize = 0;
     toRecord.firstCluster = firstClusterFreeInFAT;
 
 //escrita no diretorio
     if(writeDataClusterFolder(clusterToRecordFile, toRecord) == - 1){//se n tiver espaço na folder
         return -1;
     }
+
 //marcação na fat de cluster ocupado
-    writeInFAT(firstClusterFreeInFAT, END_OF_FILE);
+    FATbitmap[firstClusterFreeInFAT] = '1';
+    FATwrite();
 
 //retorna o handle já colocando ele no array de opens
     return (openFile (filename));
@@ -624,5 +612,3 @@ int makeAnewHandle(){
     //se chegou até aqui é pq n encontrou nenhuma posição no array de 10 para botar um novo arquivo
     return -1;
 }
-=======
->>>>>>> f426da76a509970959ce8d7e723f6851357fee1a

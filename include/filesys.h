@@ -45,6 +45,8 @@ DIR2 createDir (char *pathname);
 
 int deleteDir(char *pathname);
 
+int isFolder(char *pathname);
+
 typedef struct diskf {
     FILE2 file;
     int currPointer;
