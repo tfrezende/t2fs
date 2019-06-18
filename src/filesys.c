@@ -378,7 +378,7 @@ int delete(int clusterDir, int fileType){
     folderFind = readDataClusterFolder(clusterDir);
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
-        if ((strcmp(folderFind[i].name, dirName)) == 0 && (folderFind[i] == fileType)){
+        if ((strcmp(folderFind[i].name, dirName)) == 0 && (folderFind[i].fileType == fileType)){
           found = i;
           break;
       }
