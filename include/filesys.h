@@ -45,7 +45,7 @@ DIR2 createDir (char *pathname);
 
 int deleteDir(char *pathname);
 
-int delete(int clusterDir, int fileType);
+int delete(int clusterDir, DIRENT2 record);
 
 int isFolder(char *pathname);
 

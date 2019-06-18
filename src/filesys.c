@@ -363,14 +363,15 @@ int delete(int clusterDir, DIRENT2 record){
 
     int i;
     int found = 0;
-    char *dirName;
     DIRENT2* folderFind = malloc ( superblock.clusterSize );
     unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
     unsigned char *emptyBuffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
 
     memset(emptyBuffer, '\0', superblock.sectorSize * superblock.SectorsPerCluster);
 
-    if(fileType < 0x01 || fileType > 0x03)
+    printf("%d", record.fileType);
+
+    if(record.fileType < 0x01 || record.fileType > 0x03)
         return -1;
 
     readCluster(clusterDir, buffer);
@@ -382,7 +383,7 @@ int delete(int clusterDir, DIRENT2 record){
     printf("Achou o folder\n");
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
-        if ((strcmp(folderFind[i].name, dirName)) == 0 && (folderFind[i].fileType == record.fileType)){
+        if ((strcmp(folderFind[i].name, record.name)) == 0 && (folderFind[i].fileType == record.fileType)){
           found = i;
           break;
       }
@@ -390,20 +391,24 @@ int delete(int clusterDir, DIRENT2 record){
 
     printf("Saiu do for\n");
 
-    if(!found)
+    if(!found){
+        free(buffer);
+        free(emptyBuffer);
+        free(folderFind);
         return -1;
+    }
 
         printf("Achou\n");
 
-    if(fileType != 0x03){
+    if(record.fileType != 0x03){
         FATbitmap[folderFind[i].firstCluster] = '0';
         FATwrite();
 
-        if (fileType == 0x01){
+        if (record.fileType == 0x01){
 
         }
 
-        if (fileType == 0x02){
+        if (record.fileType == 0x02){
             writeCluster(folderFind[i].firstCluster, emptyBuffer, 0, superblock.clusterSize);
             printf("Limpou o cluster\n");
         }
