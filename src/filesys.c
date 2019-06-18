@@ -506,68 +506,120 @@ DIRENT2* readDataClusterFolder(int clusterNo) {
         return NULL;
 }
 
-// VAMOS TER QUE MODIFICAR AS ESTRUTURAS PARA UTILIZAR AS TRÊS FUNÇÕES ABAIXO
-
-/*
-int link(char * path, char ** output) {
-    int i;
-    int isLink = 0;
-    unsigned char* buffer = malloc(superblock.clusterSize;);
+FILE2 createFile(char * filename){
     char * absolute;
-    char * pathToFile;
-    char * fileName;
-    int pathClusterNo;
-    int linkClusterNo;
+    char * firstOut;
+    char * secondOut;
+    int firstClusterFreeInFAT;
+    int handle;
+    handle = makeAnewHandle();
+    int clusterToRecordFile;
+    char *linkOutput;
 
 
-    //printf("\nAboslute: %s", absolute);
-    separatePath(absolute, &pathToFile, &fileName);
+    if(link(filename, &linkOutput)== -1)
+            return -1;
 
-    pathClusterNo = pathToCluster(pathToFile);
-
-    if(pathClusterNo == -1) {
-        free(buffer);
-        free(absolute);
-        free(fileName);
-        free(pathToFile);
+    if(toAbsolutePath(linkOutput, currentPath.absolute, &absolute)){
+        //printf("\nERRO INESPERADO\n");//se der erro aqui eu n sei pq, tem q ver ainda
         return -1;
     }
 
-    readCluster(pathClusterNo, buffer);
-
-    // printf("\nfileName: %s", fileName);
-    for(i = 0; i < superblock.clusterSize;; i+= sizeof(DIRENT2))) {
-        // printf("\nNumero de vezes do for %d\n", i);
-        if ( (strcmp((char *)buffer+i+1, fileName) == 0) && (((BYTE) buffer[i]) == 0x03) && !isLink ) {
-            isLink = 1;
-        }
+    if(separatePath(absolute, &firstOut, &secondOut)){
+        //printf("\nERRO INESPERADo\n");//se der erro aqui eu n sei pq, tem q ver ainda
+        return -1;
     }
 
-    if(!isLink) {
-        free(buffer);
+    if(!isRightName(secondOut)){
+        return -1;
+    }
+
+    clusterToRecordFile = pathToCluster(firstOut);
+//caminho inexistente
+    if(clusterToRecordFile == -1){
+        return -1;
+    }
+
+//arquivo sem nome
+    if(strlen(secondOut) == 0){
         free(absolute);
-        free(fileName);
-        free(pathToFile);
-        *output = malloc(sizeof(char)*(strlen(path)+1));
-        strcpy(*output,path);
-        return 0;//BOTEI RETORNO COMO 0 PARA NAO SOFTLINK E COMO 1 PARA SOFTLINK
+        free(firstOut);
+        free(secondOut);
+        return -1;
+    }
+//diretorios n podem ter esse nome
+    if(!(isRightName(secondOut))){
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+        return -1;
+    }
+//n tinha espaço para adicionar um novo arquivos
+    if(handle == -1){
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+        return -1;
     }
 
-    linkClusterNo = pathToCluster(path);
+//se ja tiver um arquivo com esse nome nesse diretorio
+//TODO: TEM Q APGAR O TEM E COLOCAR O NOVO.
+    //if(isInCluster(clusterToRecordFile, secondOut, TYPEVAL_REGULAR)){
+    /*if (sector >= superBlock.DataSectorStart && sector < superBlock.NofSectors) {
+        readCluster(clusterNo, buffer);
 
-    memset(buffer,0,superblock.clusterSize;);
+        for(i = 0; i < clusterByteSize; i+= sizeof(struct t2fs_record)) {
+            if ( (strcmp((char *)buffer+i+1, fileName) == 0) && (((BYTE) buffer[i]) == TypeValEntrada) && !wasFound ) {
+                wasFound = 1;
+            }
+        }
+        free(buffer);
+        if (wasFound) {
+            return 1;
+        } else {
+            return 0;
+        }
+}
+        deleteFile(filename);
+    }*/
 
-    readCluster(linkClusterNo,buffer);
+//se n achar um cluster livre na fat
+    if(findFATOpenCluster(&firstClusterFreeInFAT) == -1){
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+        return -1;
+    }
 
-    *output = malloc(sizeof(char)*(strlen((char*)buffer)+1));
-    strcpy(*output,(char*)buffer);
+//criação das estruturas
+    struct t2fs_record toRecord;
 
-    free(buffer);
-    free(absolute);
-    free(fileName);
-    free(pathToFile);
-    //BOTEI RETORNO COMO 0 PARA NAO SOFTLINK E COMO 1 PARA SOFTLINK
-    return 1;
+//declaração de seus atributos
+    toRecord.TypeVal = TYPEVAL_REGULAR;
+    strcpy(toRecord.name, secondOut);
+    toRecord.bytesFileSize = 0;
+    toRecord.clustersFileSize = 1;
+    toRecord.firstCluster = firstClusterFreeInFAT;
+
+//escrita no diretorio
+    if(writeDataClusterFolder(clusterToRecordFile, toRecord) == - 1){//se n tiver espaço na folder
+        return -1;
+    }
+//marcação na fat de cluster ocupado
+    writeInFAT(firstClusterFreeInFAT, END_OF_FILE);
+
+//retorna o handle já colocando ele no array de opens
+    return (openFile (filename));
 }
 
-*/
+int makeAnewHandle(){
+    int i;
+
+    for(i = 0; i < MAX_NUM_FILES; i++){
+        if(openFiles[i].file == -1){
+            return (i+1);
+        }
+    }
+    //se chegou até aqui é pq n encontrou nenhuma posição no array de 10 para botar um novo arquivo
+    return -1;
+}
