@@ -47,7 +47,10 @@ Função:	Função usada para criar um novo arquivo no disco e abrí-lo,
 		assumirá um tamanho de zero bytes.
 -----------------------------------------------------------------------------*/
 FILE2 create2 (char *filename) {
-	return -1;
+	if (strcmp(filename, "") == 0)
+		return -1;
+		
+	return deleteFile(filename);
 }
 
 /*-----------------------------------------------------------------------------
@@ -68,7 +71,8 @@ FILE2 open2 (char *filename) {
 Função:	Função usada para fechar um arquivo.
 -----------------------------------------------------------------------------*/
 int close2 (FILE2 handle) {
-	return -1;
+
+	return closeFile(handle);
 }
 
 /*-----------------------------------------------------------------------------
@@ -166,7 +170,8 @@ int readdir2 (DIR2 handle, DIRENT2 *dentry) {
 Função:	Função usada para fechar um diretório.
 -----------------------------------------------------------------------------*/
 int closedir2 (DIR2 handle) {
-	return -1;
+
+	return closeDir(handle);
 }
 
 /*-----------------------------------------------------------------------------

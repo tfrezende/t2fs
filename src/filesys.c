@@ -612,3 +612,146 @@ int makeAnewHandle(){
     //se chegou até aqui é pq n encontrou nenhuma posição no array de 10 para botar um novo arquivo
     return -1;
 }
+
+int deleteFile(char * filename){
+    char * absolute;
+    char * firstOut;
+    char * secondOut;
+    int clusterOfDir;//cluster que contem o diretorio que contem o arquivo
+    int clusterToDelete;//cluster que tem q apagar
+    unsigned char* bufferWithNulls = malloc(sizeof(unsigned char)*SECTOR_SIZE*superBlock.SectorsPerCluster);
+    DWORD FATrepresentation = 0;
+    BYTE typeToDelete = TYPEVAL_REGULAR;
+    char *linkOutput;
+    //variaveis para a verificação
+    int i;
+    int isFile = 0;
+    int clusterByteSize = sizeof(unsigned char)*SECTOR_SIZE*superBlock.SectorsPerCluster;
+    unsigned char* buffer = malloc(clusterByteSize);
+    //
+
+    memset(bufferWithNulls,'\0',SECTOR_SIZE*superBlock.SectorsPerCluster);// coloca /0 em todo o buffer
+
+    if(toAbsolutePath(filename, currentPath.absolute, &absolute)){
+        //printf("\nERRO INESPERADO\n");//se der erro aqui eu n sei pq, tem q ver ainda
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+        return -1;
+    }
+
+    if(separatePath(absolute, &firstOut, &secondOut)){
+        //printf("\nERRO INESPERADo\n");//se der erro aqui eu n sei pq, tem q ver ainda
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+        return -1;
+    }
+
+    if(!isRightName(secondOut)){
+        return -1;
+    }
+
+    if((clusterOfDir = pathToCluster(firstOut)) == -1){
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+         return -1;
+    }
+
+    if((clusterToDelete = pathToCluster(absolute))== -1){
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+        return -1;
+    }
+
+//Verificação de se é um TYPE FILE mesmo
+    readCluster(clusterOfDir, buffer);
+    for(i = 0; i < clusterByteSize; i+= sizeof(struct t2fs_record)) {
+        if ( (strcmp((char *)buffer+i+1, secondOut) == 0) && (((BYTE) buffer[i]) == typeToDelete) && !isFile ) {
+            isFile = 1;
+        }
+    }
+    //se n for do tipo File, n pode deletar.
+    if(isFile == 0){
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+        return -1;
+    }
+//Fim da verificação
+
+    struct t2fs_record folderContent;
+
+    folderContent.TypeVal = TYPEVAL_INVALIDO;
+    strcpy(folderContent.name, "\0");
+    folderContent.bytesFileSize = 0;
+    folderContent.clustersFileSize = 0;
+    folderContent.firstCluster = 0;
+
+    if(writeZeroClusterFolderByName(clusterOfDir, folderContent, secondOut, typeToDelete) == -1){
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+        return -1;
+    }
+
+    closeFileByFristCluster(clusterToDelete);
+
+    while( FATrepresentation != END_OF_FILE && FATrepresentation != BAD_SECTOR){
+
+        readInFAT(clusterToDelete,&FATrepresentation);//le o proximo cluster que tem conteudo do arquivo
+        writeInFAT(clusterToDelete, 0);//marca 0 naquela represetanção, pra libera-lá
+
+        //escreve o buffer cheio de nulls dentro daquele cluster q tinha o arquivo.
+        writeCluster(clusterToDelete,bufferWithNulls,0,SECTOR_SIZE*superBlock.SectorsPerCluster);
+
+        //atualiza o novo cluster
+        if(FATrepresentation != END_OF_FILE && FATrepresentation != BAD_SECTOR){
+            clusterToDelete = (int) FATrepresentation;
+        }
+
+    }
+    free(absolute);
+    free(firstOut);
+    free(secondOut);
+    return 0;
+}
+
+int closeFile(FILE2 handle){
+
+    int i;
+
+    for(i = 0, i < 10; i++){
+        if(openFiles[i].file == handle){
+            openFiles[i].file = -1;
+            openFiles[i].currPointer = -1;
+            openFiles[i].clusterNo = -1;
+            openFiles[i].clusterDir = -1;
+
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
+int closeDir(DIR2 handle){
+
+    int i;
+
+    for(i = 0, i < 10; i++){
+        if(openDirectories[i].handle == handle){
+            openDirectories[i].handle = -1;
+            openDirectories[i].noReads = -1;
+            openDirectories[i].clusterDir = -1;
+            openDirectories[i].directory = setNullDirent()
+
+            return 0;
+        }
+    }
+
+    return -1;
+
+}
