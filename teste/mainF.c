@@ -104,13 +104,7 @@ int main(int argc, char *argv[])
 
 		 	error = FATformat(8);
 
-			mkdir2("/teste");
-
-			mkdir2("/outroteste");
-
-			mkdir2("/maisumteste");
-
-			printf("Parece que foi\n");
+			create2("jubileu");
 
 			continue;
 		}
