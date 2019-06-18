@@ -304,6 +304,8 @@ DIR2 createDir (char *pathname){
       DIRENT2 newDirEnt;
       DIRENT2* freeSpaceFind = malloc ( superblock.clusterSize );
 
+      memset(&newDirEnt,'\0', sizeof(DIRENT2));
+
 
       clusterNewDir = FindFreeCluster();
 
@@ -336,7 +338,7 @@ DIR2 createDir (char *pathname){
           }
       }
 
-      strcpy (newDirEnt.name, dirName);
+      strcpy(newDirEnt.name, dirName);
       newDirEnt.fileType = 0x02;
       newDirEnt.fileSize = 0;
       newDirEnt.firstCluster = clusterNewDir;
@@ -533,10 +535,7 @@ int create (int clusterDir, DIRENT2 newDirEnt){
 
     int i;
     int dirSpace = 0;
-    char *entName = malloc(sizeof(char) * 31);
-    char *path;
     unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
-    DIRENT2 newDirEnt;
     DIRENT2* freeSpaceFind = malloc ( superblock.clusterSize );
 
 
@@ -545,15 +544,13 @@ int create (int clusterDir, DIRENT2 newDirEnt){
     freeSpaceFind = readDataClusterFolder(clusterDir);
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
-        if (strcmp(freeSpaceFind[i].name, dirName) == 0)
-          return -1;
         if (strcmp(freeSpaceFind[i].name, "") == 0){
             dirSpace = i;
             break;
         }
     }
 
-    memcpy(buffer, newDirEnt.name, strlen(dirName));                                                                                               // dirName
+    memcpy(buffer, newDirEnt.name, strlen(newDirEnt.name));                                                                                               // dirName
     memcpy(buffer + 31, wordToLtlEnd(newDirEnt.fileType), 1);           // fileType
     memcpy(buffer + 32, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
     memcpy(buffer + 36, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
@@ -562,7 +559,7 @@ int create (int clusterDir, DIRENT2 newDirEnt){
 
     free(buffer);
     free(freeSpaceFind);
-    return ;
+    return 0;
 }
 
 FILE2 createFile(char * filename){
@@ -573,14 +570,18 @@ FILE2 createFile(char * filename){
     int clusterToRecordFile;
     DIRENT2 toRecord;
 
-    separatePath(currentPath.absolute, &path, &dirName)       // A principio vai criar no caminho corrente
+    memset(&toRecord,'\0', sizeof(DIRENT2));
+
+    separatePath(currentPath.absolute, &path, &dirName);      // A principio vai criar no caminho corrente
 
     clusterToRecordFile = pathToCluster(dirName);
+
+    if(strcmp(path, "/") == 0)
+        clusterToRecordFile = superblock.RootDirCluster;
 
 //caminho inexistente
     if(clusterToRecordFile == -1)
         return -1;
-
 
 //Bitmap liberado
     if(FATbitmap[clusterToRecordFile] == '0')
@@ -619,10 +620,12 @@ FILE2 createFile(char * filename){
         return -1;
 
 //declaração de seus atributos
+    strcpy(toRecord.name, "");
     strcpy(toRecord.name, filename);
     toRecord.fileType = 0x01;
     toRecord.fileSize = 0;
     toRecord.firstCluster = firstClusterFreeInFAT;
+
 
 //escrita no diretorio
     if(create(clusterToRecordFile, toRecord) == - 1){       //se n tiver espaço na folder
@@ -640,7 +643,7 @@ FILE2 createFile(char * filename){
 int makeAnewHandle(){
     int i;
 
-    for(i = 0; i < MAX_NUM_FILES; i++){
+    for(i = 0; i < 10; i++){
         if(openFiles[i].file == -1){
             return (i+1);
         }
