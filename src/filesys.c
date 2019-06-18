@@ -244,6 +244,8 @@ int changeDir(char * pathname){
 
     readCluster(clusterDir, buffer);
 
+    printf("AGORA É PRA VALER \n\n");
+
     findPath = readDataClusterFolder(clusterDir);
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
@@ -259,7 +261,7 @@ int changeDir(char * pathname){
     free(currentPath.absolute);
     currentPath.absolute = malloc(sizeof(char) * strlen(pathname) + 1);
     strcpy(currentPath.absolute, pathname);
-    currentPath.clusterNo = clusterDir;
+    currentPath.clusterNo = findPath[i].firstCluster;
 
     free(buffer);
 
@@ -339,13 +341,11 @@ DIR2 createDir (char *pathname){
       newDirEnt.firstCluster = clusterNewDir;
 
       memcpy(buffer, newDirEnt.name, 31);                                                                                               // dirName
-      memcpy(buffer + sizeof(char) * MAX_FILE_NAME_SIZE, wordToLtlEnd(newDirEnt.fileType), 1);                                      // fileType
+      memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE), wordToLtlEnd(newDirEnt.fileType), 1);                                      // fileType
       memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*2, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
       memcpy(buffer + (sizeof(char) * MAX_FILE_NAME_SIZE) + sizeof(unsigned char)*6, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
 
-
       writeCluster(clusterDir, buffer, (dirSpace * sizeof(DIRENT2)) , sizeof(DIRENT2) + 1);
-
 
       FATbitmap[clusterNewDir] = '1';
       FATwrite();
@@ -441,7 +441,6 @@ int pathToCluster(char* path) {
 
         while(pathTok != NULL && pathsNo == found && folderInPath) {
             pathsNo += 1;
-            printf("Current Cluster : %d\n", currentCluster );
             folderContent = readDataClusterFolder(currentCluster);
             for(i = 0; i < folderSize; i++) {
                 if (strcmp(folderContent[i].name,pathTok) == 0) {
@@ -488,9 +487,9 @@ DIRENT2* readDataClusterFolder(int clusterNo) {
 
 
             for(j = 0; j < folderSizeInBytes - 1 ; j += sizeof(DIRENT2)) {
-                memcpy(folderContent[j].name, teste + j, 31);
-                folderContent[j].fileType = (BYTE) ( *(teste + 32) + j);
-                folderContent[j].fileSize = convertToDword(teste + 33 + j);
+                memcpy(folderContent[j].name, teste + j, 30);
+                folderContent[j].fileType = (BYTE) ( *(teste + 31) + j);
+                folderContent[j].fileSize = convertToDword(teste + 32 + j);
                 folderContent[j].firstCluster = convertToDword(teste + 37 + j);
             }
             free(teste);
