@@ -365,7 +365,7 @@ int deleteEnt(int clusterDir, DIRENT2 record){
 
         if (record.fileType == 0x01){
 
-            for(i = 0; i < MAX_NUM_FILES; i++){
+            for(i = 0; i < 10; i++){
 
                 if(openFiles[i].clusterDir == clusterDir){ //então tava aberto
                     openFiles[i].file = -1;
@@ -392,8 +392,8 @@ int deleteEnt(int clusterDir, DIRENT2 record){
 
         if (record.fileType == 0x02){
 
-            for(i = 0, i < 10; i++){
-                if(openDirectories[i].clusterDir == clusterDir;){
+            for(i = 0; i < 10; i++){
+                if(openDirectories[i].clusterDir == clusterDir){
                     openDirectories[i].handle = -1;
                     openDirectories[i].noReads = -1;
                     openDirectories[i].clusterDir = -1;
@@ -585,7 +585,7 @@ FILE2 createFile(char * filename){
 
     memset(&toRecord,'\0', sizeof(DIRENT2));
 
-    if(!strrchr(filename, "/"))
+    if(!strrchr(filename, '/'))
         clusterToRecordFile = pathToCluster(currentPath.absolute);
     else{
         separatePath(filename, &path, &fileName);
@@ -655,7 +655,7 @@ int deleteFile(char * filename){
     int clusterToDelete;    //cluster que tem q apagar
     DIRENT2 toDelete;
 
-    if(!strrchr(filename, "/"))
+    if(!strrchr(filename, '/'))
         clusterToDelete = pathToCluster(currentPath.absolute);
     else{
         separatePath(filename, &path, &fileName);
@@ -666,7 +666,7 @@ int deleteFile(char * filename){
     if (FATbitmap[clusterToDelete] == '0')
         return -1;
 
-    strcpy(toDelete.name, dirName);
+    strcpy(toDelete.name, filename);
     toDelete.fileType = 0x01;
 
     if(deleteEnt(clusterToDelete, toDelete) == -1)
@@ -678,13 +678,12 @@ int deleteFile(char * filename){
 int isInCluster(int clusterNo, DIRENT2 toFind) {
 
     int i;
-    unsigned char* buffer = malloc(clusterByteSize);
     DIRENT2* fileIn = malloc ( superblock.clusterSize );
 
     fileIn = readDataClusterFolder(clusterNo);
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
-        if ( (strcmp(fileIn[i].name, toFind) == 0) && (fileIn[i].fileType == 0x02) )
+        if ( (strcmp(fileIn[i].name, toFind.name) == 0) && (fileIn[i].fileType == 0x02) )
             return 1;
     }
     return 0;
@@ -695,7 +694,7 @@ int closeFile(FILE2 handle){
 
     int i;
 
-    for(i = 0, i < 10; i++){
+    for(i = 0; i < 10; i++){
         if(openFiles[i].file == handle){
             openFiles[i].file = -1;
             openFiles[i].currPointer = -1;
@@ -713,12 +712,12 @@ int closeDir(DIR2 handle){
 
     int i;
 
-    for(i = 0, i < 10; i++){
+    for(i = 0; i < 10; i++){
         if(openDirectories[i].handle == handle){
             openDirectories[i].handle = -1;
             openDirectories[i].noReads = -1;
             openDirectories[i].clusterDir = -1;
-            openDirectories[i].directory = setNullDirent()
+            openDirectories[i].directory = setNullDirent();
 
             return 0;
         }

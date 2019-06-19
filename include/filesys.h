@@ -43,7 +43,7 @@ int pathToCluster(char* path);
 
 DIR2 createDir (char *pathname);
 
-int deleteDir(char *pathname);
+int deleteDir(char * pathname);
 
 int deleteEnt (int clusterDir, DIRENT2 record);
 
@@ -56,6 +56,10 @@ int makeAnewHandle();
 int closeFile(FILE2 handle);
 
 int closeDir(DIR2 handle);
+
+int deleteFile(char * filename);
+
+FILE2 createFile(char * filename);
 
 //int deleteFile(char * filename);
 

@@ -105,19 +105,15 @@ int main(int argc, char *argv[])
 
 			mkdir2("/jubileu");
 
-			mkdir2("/maisteste");
+			create2("/testandobarra");
 
-			mkdir2("/pizza da balaca");
+			create2("agr sem barra");
 
-			create2("serase");
-
-			mkdir2("/jubileu/teste");
-
-			chdir2("/jubileu");
-
-			create2("se foi validou");
+			mkdir2("/cechin calvo cabeludo");
 
 			rmdir2("/jubileu");
+
+			delete2("/agr sem barra");
 
 			continue;
 		}
