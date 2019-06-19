@@ -739,7 +739,6 @@ int isInCluster(int clusterNo, DIRENT2 toFind) {
     return 0;
 }
 
-/*
 
 int closeFile(FILE2 handle){
 
@@ -777,5 +776,3 @@ int closeDir(DIR2 handle){
     return -1;
 
 }
-
-*/
