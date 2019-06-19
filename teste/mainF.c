@@ -115,9 +115,9 @@ int main(int argc, char *argv[])
 
 			chdir2("/jubileu");
 
-			puts(currentPath.absolute);
-
 			create2("se foi validou");
+
+			rmdir2("/jubileu");
 
 			continue;
 		}
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 
 			printf("DIR : %d\n\n\n", sizeof(DIRENT2));
 
-			for(sector = 15; sector < 20; sector ++){
+			for(sector = 0; sector < 10; sector ++){
 				int error = read_sector (sector, testeleitura);
 				if (error) {
 					printf ("read_sector (%d) error = %d\n", sector, error);

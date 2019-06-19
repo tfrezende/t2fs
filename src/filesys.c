@@ -242,8 +242,6 @@ int changeDir(char * pathname){
 
     clusterDir = pathToCluster(path);
 
-
-
     readCluster(clusterDir, buffer);
 
     findPath = readDataClusterFolder(clusterDir);
@@ -333,39 +331,34 @@ DIR2 createDir (char *pathname){
 int delete(int clusterDir, DIRENT2 record){
 
     int i;
-    int found = 0;
+    int found = -1;
     DIRENT2* folderFind = malloc ( superblock.clusterSize );
     unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
     unsigned char *emptyBuffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
 
     memset(emptyBuffer, '\0', superblock.sectorSize * superblock.SectorsPerCluster);
 
-    printf("%d", record.fileType);
 
     if(record.fileType < 0x01 || record.fileType > 0x03)
         return -1;
 
     readCluster(clusterDir, buffer);
 
-
     folderFind = readDataClusterFolder(clusterDir);
 
-
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
-        if ((strcmp(folderFind[i].name, record.name)) == 0 && (folderFind[i].fileType == record.fileType)){
+        if ((strcmp(folderFind[i].name, record.name) == 0) && (folderFind[i].fileType == record.fileType)){
           found = i;
           break;
       }
     }
 
-
-    if(!found){
+    if(found == -1){
         free(buffer);
         free(emptyBuffer);
         free(folderFind);
         return -1;
     }
-
 
     if(record.fileType != 0x03){
         FATbitmap[folderFind[i].firstCluster] = '0';
