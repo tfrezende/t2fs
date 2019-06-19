@@ -330,7 +330,7 @@ DIR2 createDir (char *pathname){
 
 int deleteEnt(int clusterDir, DIRENT2 record){
 
-    int i;
+    int i, j;
     int found = -1;
     DIRENT2* folderFind = malloc ( superblock.clusterSize );
     unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
@@ -362,25 +362,56 @@ int deleteEnt(int clusterDir, DIRENT2 record){
 
     if(record.fileType != 0x03){
         FATbitmap[folderFind[i].firstCluster] = '0';
-        FATwrite();
 
         if (record.fileType == 0x01){
 
+            for(i = 0; i < MAX_NUM_FILES; i++){
+
+                if(openFiles[i].clusterDir == clusterDir){ //então tava aberto
+                    openFiles[i].file = -1;
+                    openFiles[i].clusterNo = -1;
+                    openFiles[i].currPointer = -1;
+                    openFiles[i].clusterDir = -1;
+                }
+            }
+
+            j = record.firstCluster;
+
+            writeCluster(j, emptyBuffer, 0, superblock.clusterSize);
+
+            // Apagando todos os clusters referenciados
+            while(FATnext[j] != -1){
+
+                j = FATnext[j];
+                writeCluster(j, emptyBuffer, 0, superblock.clusterSize);
+                FATnext[j] = -1;
+                FATbitmap[j] = '0';
+            }
         }
 
+
         if (record.fileType == 0x02){
+
+            for(i = 0, i < 10; i++){
+                if(openDirectories[i].clusterDir == clusterDir;){
+                    openDirectories[i].handle = -1;
+                    openDirectories[i].noReads = -1;
+                    openDirectories[i].clusterDir = -1;
+                    openDirectories[i].directory = setNullDirent();
+
+                    return 0;
+                }
+            }
+
             writeCluster(folderFind[i].firstCluster, emptyBuffer, 0, superblock.clusterSize);
         }
 
     }
 
-    else{   // caiu aqui é softlink
-
-    }
     // limpa a entrada, todo tipo de arquivo faz isso
     writeCluster(clusterDir, emptyBuffer, (found * sizeof(DIRENT2)) , sizeof(DIRENT2) );
-
-
+    FATwrite();
+    
     free(buffer);
     free(emptyBuffer);
     free(folderFind);
