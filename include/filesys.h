@@ -61,8 +61,6 @@ int deleteFile(char * filename);
 
 FILE2 createFile(char * filename);
 
-//int deleteFile(char * filename);
-
 typedef struct diskf {
     FILE2 file;
     int currPointer;

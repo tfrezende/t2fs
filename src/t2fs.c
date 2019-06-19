@@ -57,13 +57,19 @@ FILE2 create2 (char *filename) {
 Função:	Função usada para remover (apagar) um arquivo do disco.
 -----------------------------------------------------------------------------*/
 int delete2 (char *filename) {
-	return -1;
+	if (strcmp(filename, "") == 0)
+		return -1;
+
+	return deleteFile(filename);
 }
 
 /*-----------------------------------------------------------------------------
 Função:	Função que abre um arquivo existente no disco.
 -----------------------------------------------------------------------------*/
 FILE2 open2 (char *filename) {
+	if (strcmp(filename, "") == 0)
+		return -1;
+
 	return -1;
 }
 
@@ -71,8 +77,10 @@ FILE2 open2 (char *filename) {
 Função:	Função usada para fechar um arquivo.
 -----------------------------------------------------------------------------*/
 int close2 (FILE2 handle) {
+	if (strcmp(filename, "") == 0)
+		return -1;
 
-	return -1;
+	return closeFile(handle);
 }
 
 /*-----------------------------------------------------------------------------
@@ -154,6 +162,9 @@ int getcwd2 (char *pathname, int size) {
 Função:	Função que abre um diretório existente no disco.
 -----------------------------------------------------------------------------*/
 DIR2 opendir2 (char *pathname) {
+	if (strcmp(filename, "") == 0)
+		return -1;
+
 	return -1;
 }
 
@@ -169,7 +180,7 @@ Função:	Função usada para fechar um diretório.
 -----------------------------------------------------------------------------*/
 int closedir2 (DIR2 handle) {
 
-	return -1; //closeDir(handle);
+	return closeDir(handle);
 }
 
 /*-----------------------------------------------------------------------------
