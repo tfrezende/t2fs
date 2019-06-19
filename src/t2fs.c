@@ -77,9 +77,6 @@ FILE2 open2 (char *filename) {
 Função:	Função usada para fechar um arquivo.
 -----------------------------------------------------------------------------*/
 int close2 (FILE2 handle) {
-	if (strcmp(filename, "") == 0)
-		return -1;
-
 	return closeFile(handle);
 }
 
@@ -162,7 +159,7 @@ int getcwd2 (char *pathname, int size) {
 Função:	Função que abre um diretório existente no disco.
 -----------------------------------------------------------------------------*/
 DIR2 opendir2 (char *pathname) {
-	if (strcmp(filename, "") == 0)
+	if (strcmp(pathname, "") == 0)
 		return -1;
 
 	return -1;
@@ -189,5 +186,10 @@ Função:	Função usada para criar um caminho alternativo (softlink) com
 		arquivo ou diretório fornecido por filename.
 -----------------------------------------------------------------------------*/
 int ln2 (char *linkname, char *filename) {
-	return -1;
+	if (strcmp(linkname, "") == 0)
+		return -1;
+	if (strcmp(filename, "") == 0)
+		return -1;
+
+	return createSoftlink(linkname, filename);
 }

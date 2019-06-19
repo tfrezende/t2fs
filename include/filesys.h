@@ -61,6 +61,8 @@ int deleteFile(char * filename);
 
 FILE2 createFile(char * filename);
 
+int createSoftlink(char *linkname,char *filename);
+
 typedef struct diskf {
     FILE2 file;
     int currPointer;

@@ -361,7 +361,7 @@ int deleteEnt(int clusterDir, DIRENT2 record){
         return -1;
     }
 
-    printf("Chegou aqui?\n");
+
 
     if(record.fileType != 0x03){
         FATbitmap[folderFind[i].firstCluster] = '0';
@@ -377,8 +377,6 @@ int deleteEnt(int clusterDir, DIRENT2 record){
                     openFiles[i].clusterDir = -1;
                 }
             }
-
-            printf("Chega aqui?\n");
 
             j = record.firstCluster;
 
@@ -549,12 +547,11 @@ DIRENT2* readDataClusterFolder(int clusterNo) {
 int createEnt (int clusterDir, DIRENT2 newDirEnt){
 
     int i;
-    int dirSpace = 0;
+    int dirSpace = -1;
     unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
     DIRENT2* freeSpaceFind = malloc ( superblock.clusterSize );
 
     readCluster(clusterDir, buffer);
-
 
     freeSpaceFind = readDataClusterFolder(clusterDir);
 
@@ -565,14 +562,25 @@ int createEnt (int clusterDir, DIRENT2 newDirEnt){
         }
     }
 
+    printf("Dir : %d\n", dirSpace);
+
+    if(dirSpace == -1){
+        free(buffer);
+        free(freeSpaceFind);
+        return -1;
+    }
+
     memset(buffer,'\0', superblock.sectorSize * superblock.SectorsPerCluster);
 
-    memcpy(buffer, newDirEnt.name, strlen(newDirEnt.name));                                                                                               // dirName
+    memcpy(buffer, newDirEnt.name, strlen(newDirEnt.name));             // dirName
     memcpy(buffer + 31, wordToLtlEnd(newDirEnt.fileType), 1);           // fileType
     memcpy(buffer + 32, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
     memcpy(buffer + 36, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
 
+
+
     writeCluster(clusterDir, buffer, (dirSpace * sizeof(DIRENT2)) , sizeof(DIRENT2));
+
 
     free(buffer);
     free(freeSpaceFind);
@@ -706,6 +714,34 @@ int isInCluster(int clusterNo, DIRENT2 toFind) {
     return 0;
 }
 
+int isLink (char *filename){
+
+    char * path;
+    char * name;
+    int i;
+    int clusterLink;
+    const char dir_div = '/';
+    DIRENT2* linkIn = malloc ( superblock.clusterSize );
+
+    if(strrchr(filename, dir_div) == NULL){
+        clusterLink= pathToCluster(currentPath.absolute);
+        strcpy(name, filename);
+    }
+    else{
+        separatePath(filename, &path, &name);
+        clusterLink = pathToCluster(path);
+    }
+
+    linkIn = readDataClusterFolder(clusterLink);
+
+    for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
+        if ( (strcmp(linkIn[i].name, name) == 0) && (linkIn[i].fileType == 0x03) )
+            return clusterLink;
+    }
+
+    return 0;
+}
+
 
 int closeFile(FILE2 handle){
 
@@ -742,4 +778,62 @@ int closeDir(DIR2 handle){
 
     return -1;
 
+}
+
+int createSoftlink(char *linkname,char *filename){ //Fruto do REUSO
+
+    char * path;
+    char * name;
+    char * find = malloc (sizeof(char) * 50);
+    int clusterToLink;
+    int i;
+    DIRENT2 toLink;
+    DIRENT2 *linkType;
+    int found = 0;
+    const char dir_div = '/';
+
+    if(strrchr(filename, dir_div) == NULL){
+
+        strcpy(find, currentPath.absolute);
+        if(!(strcmp(find,"/") == 0))
+            strcat(find, "/");
+        strcat(find, filename);
+        clusterToLink = pathToCluster(find);
+
+        strcpy(name, filename);
+    }
+    else{
+        separatePath(filename, &path, &name);
+        clusterToLink = pathToCluster(filename);
+    }
+
+    puts(name);
+
+    if(strlen(name) <= 0)
+      return -1;
+
+    linkType = readDataClusterFolder(currentPath.clusterNo);
+
+    for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
+        if (strcmp(linkType[i].name, name) == 0){
+
+            found = 1;
+            break;
+        }
+      }
+
+
+    if(!found)
+        return -1;
+
+
+    strcpy(toLink.name, "");
+    strcpy(toLink.name, name);
+    toLink.fileType = 0x04;
+    toLink.fileSize = 0;
+    toLink.firstCluster = clusterToLink;
+
+    createEnt(currentPath.clusterNo, toLink);
+
+    return 0;
 }
