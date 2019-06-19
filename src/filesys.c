@@ -322,7 +322,7 @@ DIR2 createDir (char *pathname){
       newDir.fileSize = 0;
       newDir.firstCluster = clusterNewDir;
 
-      create (clusterDir, newDir);
+      createEnt (clusterDir, newDir);
 
       FATbitmap[clusterNewDir] = '1';
       FATwrite();
@@ -517,7 +517,7 @@ DIRENT2* readDataClusterFolder(int clusterNo) {
         return NULL;
 }
 
-int create (int clusterDir, DIRENT2 newDirEnt){
+int createEnt (int clusterDir, DIRENT2 newDirEnt){
 
     int i;
     int dirSpace = 0;
@@ -526,7 +526,6 @@ int create (int clusterDir, DIRENT2 newDirEnt){
 
     readCluster(clusterDir, buffer);
 
-    printf("Cluster que tamo escrevendo : %d\n", clusterDir);
 
     freeSpaceFind = readDataClusterFolder(clusterDir);
 
@@ -612,7 +611,7 @@ FILE2 createFile(char * filename){
 
 
 //escrita no diretorio
-    if(create(clusterToRecordFile, toRecord) == - 1){       //se n tiver espaço na folder
+    if(createEnt(clusterToRecordFile, toRecord) == - 1){       //se n tiver espaço na folder
         return -1;
     }
 

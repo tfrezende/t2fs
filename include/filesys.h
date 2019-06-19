@@ -47,7 +47,7 @@ int deleteDir(char *pathname);
 
 int delete(int clusterDir, DIRENT2 record);
 
-int create (int clusterDir, DIRENT2 newDirEnt);
+int createEnt (int clusterDir, DIRENT2 newDirEnt);
 
 int makeAnewHandle();
 
