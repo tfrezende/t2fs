@@ -837,3 +837,64 @@ int createSoftlink(char *linkname,char *filename){ //Fruto do REUSO
 
     return 0;
 }
+
+int updatePointer(FILE2 handle, DWORD offset){
+
+    int found = 0;
+    int currentPointer;
+    int currentCluster;
+    int fileNo;
+    int newCursorPointer;
+    int i;
+
+    //procura o arquivo pelo handle
+    for(i=0; i < 10; i++){
+        if(openFiles[i].file == handle){
+            found = 1;
+            fileNo = i;
+            break;
+        }
+
+    }
+    if(found == 0){
+        return -1;
+    }
+    //atribuicao dos parametros do arquivo
+    currentPointer = openFiles[fileNo].currPointer;
+    currentCluster = openFiles[fileNo].clusterNo;
+
+    //novo cp
+    newCursorPointer = (int)offset;
+
+    if(newCursorPointer <- 1)
+        return -1;
+
+    if(newCursorPointer > sizeOfFile(openFiles[fileNo].clusterDir, openFiles[fileNo].clusterNo) || newCursorPointer < 0){
+        return -1;
+    }
+
+    if((int)offset == -1){
+        newCursorPointer= sizeOfFile(openFiles[fileNo].clusterDir, openFiles[fileNo].clusterNo) + 1;
+    }
+
+    openFiles[fileNo].currPointer= newCursorPointer;
+
+    return 0;
+}
+
+int sizeOfFile(int clusterDir, int clusterFile){
+
+    DIRENT2* folderContent = malloc(superblock.clusterSize);
+    int folderSize = (superblock.clusterSize) / sizeof(DIRENT2 );
+    int i;
+    //verifica o tamanho do arquivo com o nome dado;
+    folderContent = readDataClusterFolder(clusterDir);
+
+    for(i = 0; i < folderSize; i++){
+
+        if(folderContent[i].firstCluster == clusterFile){
+            return (int)folderContent[i].fileSize;
+        }
+    }
+    return -1;
+}

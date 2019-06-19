@@ -63,6 +63,10 @@ FILE2 createFile(char * filename);
 
 int createSoftlink(char *linkname,char *filename);
 
+int updatePointer(FILE2 handle, DWORD offset);
+
+int sizeOfFile(int clusterDir, int clusterFile);
+
 typedef struct diskf {
     FILE2 file;
     int currPointer;
