@@ -242,8 +242,9 @@ int changeDir(char * pathname){
 
     clusterDir = pathToCluster(path);
 
-    readCluster(clusterDir, buffer);
 
+
+    readCluster(clusterDir, buffer);
 
     findPath = readDataClusterFolder(clusterDir);
 
@@ -295,16 +296,9 @@ DIR2 createDir (char *pathname){
 
       int clusterDir = 0;
       int clusterNewDir = 0;
-      int i;
-      int dirSpace = 0;
-      char *dirName = malloc(sizeof(char) * 31);
+      char *dirName;
       char *path;
-      unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
-      DIRENT2 newDirEnt;
-      DIRENT2* freeSpaceFind = malloc ( superblock.clusterSize );
-
-      memset(&newDirEnt,'\0', sizeof(DIRENT2));
-
+      DIRENT2 newDir;
 
       clusterNewDir = FindFreeCluster();
 
@@ -320,42 +314,18 @@ DIR2 createDir (char *pathname){
       if(strlen(dirName) <= 0)
         return -1;
 
-      // Adicionar dirétorio no diretorio pai
-
       clusterDir = pathToCluster(path);
 
-      readCluster(clusterDir, buffer);
+      strcpy(newDir.name, "");
+      strcpy(newDir.name, dirName);
+      newDir.fileType = 0x02;
+      newDir.fileSize = 0;
+      newDir.firstCluster = clusterNewDir;
 
-      freeSpaceFind = readDataClusterFolder(clusterDir);
-
-      for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
-          if (strcmp(freeSpaceFind[i].name, dirName) == 0)
-            return -1;
-          if (strcmp(freeSpaceFind[i].name, "") == 0){
-              dirSpace = i;
-              break;
-          }
-      }
-
-      strcpy(newDirEnt.name, dirName);
-      newDirEnt.fileType = 0x02;
-      newDirEnt.fileSize = 0;
-      newDirEnt.firstCluster = clusterNewDir;
-
-      memset(buffer,'\0', superblock.sectorSize * superblock.SectorsPerCluster));
-
-      memcpy(buffer, newDirEnt.name, strlen(dirName));                                                                                               // dirName
-      memcpy(buffer + 31, wordToLtlEnd(newDirEnt.fileType), 1);           // fileType
-      memcpy(buffer + 32, dwordToLtlEnd(newDirEnt.fileSize), 4);          // fileSize
-      memcpy(buffer + 36, dwordToLtlEnd(newDirEnt.firstCluster), 4);      // firstCluster
-
-      writeCluster(clusterDir, buffer, (dirSpace * sizeof(DIRENT2)) , sizeof(DIRENT2));
+      create (clusterDir, newDir);
 
       FATbitmap[clusterNewDir] = '1';
       FATwrite();
-
-      free(buffer);
-      free(freeSpaceFind);
 
       return 0;
 }
@@ -377,11 +347,9 @@ int delete(int clusterDir, DIRENT2 record){
 
     readCluster(clusterDir, buffer);
 
-    printf("Leu o cluster\n");
 
     folderFind = readDataClusterFolder(clusterDir);
 
-    printf("Achou o folder\n");
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
         if ((strcmp(folderFind[i].name, record.name)) == 0 && (folderFind[i].fileType == record.fileType)){
@@ -390,7 +358,6 @@ int delete(int clusterDir, DIRENT2 record){
       }
     }
 
-    printf("Saiu do for\n");
 
     if(!found){
         free(buffer);
@@ -399,7 +366,6 @@ int delete(int clusterDir, DIRENT2 record){
         return -1;
     }
 
-        printf("Achou\n");
 
     if(record.fileType != 0x03){
         FATbitmap[folderFind[i].firstCluster] = '0';
@@ -411,7 +377,6 @@ int delete(int clusterDir, DIRENT2 record){
 
         if (record.fileType == 0x02){
             writeCluster(folderFind[i].firstCluster, emptyBuffer, 0, superblock.clusterSize);
-            printf("Limpou o cluster\n");
         }
 
     }
@@ -421,7 +386,7 @@ int delete(int clusterDir, DIRENT2 record){
     }
     // limpa a entrada, todo tipo de arquivo faz isso
     writeCluster(clusterDir, emptyBuffer, (found * sizeof(DIRENT2)) , sizeof(DIRENT2) );
-    printf("Apagou os registros\n");
+
 
     free(buffer);
     free(emptyBuffer);
@@ -434,15 +399,9 @@ int deleteDir(char * pathname){
 
     DIRENT2 record;
     int clusterDir = 0;
-    //int i;
-    //int dirFound = 0;
     char *dirName;
     char *path;
-    //unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
-    //unsigned char *emptyBuffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
-    //DIRENT2* folderFind = malloc ( superblock.clusterSize );
 
-    /*memset(emptyBuffer, '\0', superblock.sectorSize * superblock.SectorsPerCluster);*/
 
     if (strcmp(pathname,"/") == 0) {
         return -1;
@@ -464,33 +423,6 @@ int deleteDir(char * pathname){
     if(delete(clusterDir, record) == -1)
         return -1;
 
-    printf("Conseguiu apagar\n");
-    /*
-    readCluster(clusterDir, buffer);
-
-    folderFind = readDataClusterFolder(clusterDir);
-
-    for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
-        if (strcmp(folderFind[i].name, dirName) == 0){
-          dirFound = i;
-          break;
-      }
-    }
-
-    if(!dirFound)
-        return -1;
-
-    FATbitmap[folderFind[i].firstCluster] = '0';
-    FATwrite();
-
-    writeCluster(folderFind[i].firstCluster, emptyBuffer, 0, superblock.clusterSize);       // Limpa o cluster
-
-    //writeCluster(clusterDir, emptyBuffer, (dirFound * sizeof(DIRENT2)) , sizeof(DIRENT2) ); // Limpa a entrada de diretorio
-
-    free(buffer);
-    free(emptyBuffer);
-
-*/
     return 0;
 }
 
@@ -585,31 +517,6 @@ DIRENT2* readDataClusterFolder(int clusterNo) {
         return NULL;
 }
 
-int isFolder(char *pathname){
-
-    char *dirName = malloc(sizeof(char) * 31);
-    char *path;
-    int i;
-    int clusterSearch;
-    unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
-    DIRENT2* folderFind = malloc ( superblock.clusterSize );
-
-    separatePath(pathname, &path, &dirName);
-    clusterSearch = pathToCluster(path);
-
-    readCluster(clusterSearch, buffer);
-
-    folderFind = readDataClusterFolder(clusterSearch);
-
-    for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
-        if ( (strcmp(folderFind[i].name, dirName) == 0) && (folderFind[i].fileType = 0x02) )
-          return 1;
-    }
-
-    return 0;
-
-}
-
 int create (int clusterDir, DIRENT2 newDirEnt){
 
     int i;
@@ -617,8 +524,9 @@ int create (int clusterDir, DIRENT2 newDirEnt){
     unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
     DIRENT2* freeSpaceFind = malloc ( superblock.clusterSize );
 
-
     readCluster(clusterDir, buffer);
+
+    printf("Cluster que tamo escrevendo : %d\n", clusterDir);
 
     freeSpaceFind = readDataClusterFolder(clusterDir);
 
@@ -629,7 +537,7 @@ int create (int clusterDir, DIRENT2 newDirEnt){
         }
     }
 
-    memset(buffer,'\0', superblock.sectorSize * superblock.SectorsPerCluster));
+    memset(buffer,'\0', superblock.sectorSize * superblock.SectorsPerCluster);
 
     memcpy(buffer, newDirEnt.name, strlen(newDirEnt.name));                                                                                               // dirName
     memcpy(buffer + 31, wordToLtlEnd(newDirEnt.fileType), 1);           // fileType
@@ -644,8 +552,7 @@ int create (int clusterDir, DIRENT2 newDirEnt){
 }
 
 FILE2 createFile(char * filename){
-    char *path;
-    char *dirName;
+
     int firstClusterFreeInFAT;
     int handle = makeAnewHandle();
     int clusterToRecordFile;
@@ -653,15 +560,8 @@ FILE2 createFile(char * filename){
 
     memset(&toRecord,'\0', sizeof(DIRENT2));
 
-    separatePath(currentPath.absolute, &path, &dirName);      // A principio vai criar no caminho corrente
 
-    clusterToRecordFile = pathToCluster(dirName);
-
-    if(strcmp(path, "/") == 0)
-        clusterToRecordFile = superblock.RootDirCluster;
-
-    if(strcmp(path, "/") == 0)
-        clusterToRecordFile = superblock.RootDirCluster;
+    clusterToRecordFile = pathToCluster(currentPath.absolute);
 
 //caminho inexistente
     if(clusterToRecordFile == -1)

@@ -144,12 +144,9 @@ int getcwd2 (char *pathname, int size) {
 		return -1;
 	}
 	else{
-		if (isFolder(pathname)){
-			memset(pathname,'\0',size);
-			strcpy(pathname, currentPath.absolute);
-			return 0;
-		}
-		return -1;
+		memset(pathname,'\0',size);
+		strcpy(pathname, currentPath.absolute);
+		return 0;
 	}
 }
 

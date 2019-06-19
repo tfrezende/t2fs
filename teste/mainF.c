@@ -98,17 +98,26 @@ int main(int argc, char *argv[])
 
 		 	int error = 0;
 			int i, teste;
-			char *pathname = malloc (sizeof(char) * 50);
+			char *path;
+		    char *dirName;
 
 		 	error = FATformat(8);
 
 			mkdir2("/jubileu");
 
-			mkdir2("/moatan");
+			mkdir2("/maisteste");
 
 			mkdir2("/pizza da balaca");
 
-			rmdir2("/moatan");
+			create2("serase");
+
+			mkdir2("/jubileu/teste");
+
+			chdir2("/jubileu");
+
+			puts(currentPath.absolute);
+
+			create2("se foi validou");
 
 			continue;
 		}
@@ -120,7 +129,7 @@ int main(int argc, char *argv[])
 
 			printf("DIR : %d\n\n\n", sizeof(DIRENT2));
 
-			for(sector = 0; sector < 10; sector ++){
+			for(sector = 15; sector < 20; sector ++){
 				int error = read_sector (sector, testeleitura);
 				if (error) {
 					printf ("read_sector (%d) error = %d\n", sector, error);
