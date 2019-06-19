@@ -829,11 +829,11 @@ int createSoftlink(char *linkname,char *filename){ //Fruto do REUSO
 
     strcpy(toLink.name, "");
     strcpy(toLink.name, name);
-    toLink.fileType = 0x04;
+    toLink.fileType = 0x03;
     toLink.fileSize = 0;
     toLink.firstCluster = clusterToLink;
 
-    createEnt(currentPath.clusterNo, toLink);
+    createEnt(1, toLink);
 
     return 0;
 }
