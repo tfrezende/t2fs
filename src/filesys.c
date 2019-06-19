@@ -328,7 +328,7 @@ DIR2 createDir (char *pathname){
       return 0;
 }
 
-int delete(int clusterDir, DIRENT2 record){
+int deleteEnt(int clusterDir, DIRENT2 record){
 
     int i;
     int found = -1;
@@ -413,7 +413,7 @@ int deleteDir(char * pathname){
     strcpy(record.name, dirName);
     record.fileType = 0x02;
 
-    if(delete(clusterDir, record) == -1)
+    if(deleteEnt(clusterDir, record) == -1)
         return -1;
 
     return 0;
