@@ -346,6 +346,7 @@ int deleteEnt(int clusterDir, DIRENT2 record){
 
     folderFind = readDataClusterFolder(clusterDir);
 
+
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ); i++){
         if ((strcmp(folderFind[i].name, record.name) == 0) && (folderFind[i].fileType == record.fileType)){
           found = i;
@@ -359,6 +360,8 @@ int deleteEnt(int clusterDir, DIRENT2 record){
         free(folderFind);
         return -1;
     }
+
+    printf("Chegou aqui?\n");
 
     if(record.fileType != 0x03){
         FATbitmap[folderFind[i].firstCluster] = '0';
@@ -374,6 +377,8 @@ int deleteEnt(int clusterDir, DIRENT2 record){
                     openFiles[i].clusterDir = -1;
                 }
             }
+
+            printf("Chega aqui?\n");
 
             j = record.firstCluster;
 
@@ -451,6 +456,7 @@ int deleteDir(char * pathname){
 
 
 int pathToCluster(char* path) {
+
 
         int i;
         int found = 0;
@@ -576,7 +582,8 @@ int createEnt (int clusterDir, DIRENT2 newDirEnt){
 FILE2 createFile(char * filename){
 
     char *path;
-    char *fileName;
+    char *name = malloc(strlen(filename) + 1);
+    const char dir_div = '/';
 
     int firstClusterFreeInFAT;
     int handle = makeAnewHandle();
@@ -585,13 +592,17 @@ FILE2 createFile(char * filename){
 
     memset(&toRecord,'\0', sizeof(DIRENT2));
 
-    if(!strrchr(filename, '/'))
+
+    if(strrchr(filename, dir_div) == NULL){
         clusterToRecordFile = pathToCluster(currentPath.absolute);
-    else{
-        separatePath(filename, &path, &fileName);
-        clusterToRecordFile = pathToCluster(path);
-        strcpy(filename, fileName);
+        strcpy(name, filename);
     }
+    else{
+        separatePath(filename, &path, &name);
+        clusterToRecordFile = pathToCluster(path);
+    }
+
+
 
 //caminho inexistente
     if(clusterToRecordFile == -1)
@@ -614,7 +625,7 @@ FILE2 createFile(char * filename){
 
 //declaração de seus atributos
     strcpy(toRecord.name, "");
-    strcpy(toRecord.name, filename);
+    strcpy(toRecord.name, name);
     toRecord.fileType = 0x01;
     toRecord.fileSize = 0;
     toRecord.firstCluster = firstClusterFreeInFAT;
@@ -622,7 +633,8 @@ FILE2 createFile(char * filename){
     //se ja tiver um arquivo com esse nome nesse diretorio
 
     if(isInCluster(clusterToRecordFile, toRecord))
-        deleteFile(filename);
+        deleteFile(name);
+
 
 //escrita no diretorio
     if(createEnt(clusterToRecordFile, toRecord) == - 1){       //se n tiver espaço na folder
@@ -632,6 +644,8 @@ FILE2 createFile(char * filename){
 //marcação na fat de cluster ocupado
     FATbitmap[firstClusterFreeInFAT] = '1';
     FATwrite();
+
+    free(name);
 
 //retorna o handle já colocando ele no array de opens         openFile (filename)
     return (5);
@@ -651,26 +665,29 @@ int makeAnewHandle(){
 
 int deleteFile(char * filename){
     char * path;
-    char * fileName;
+    char * name;
     int clusterToDelete;    //cluster que tem q apagar
     DIRENT2 toDelete;
+    const char dir_div = '/';
 
-    if(!strrchr(filename, '/'))
+    if(strrchr(filename, dir_div) == NULL){
         clusterToDelete = pathToCluster(currentPath.absolute);
+        strcpy(name, filename);
+    }
     else{
-        separatePath(filename, &path, &fileName);
+        separatePath(filename, &path, &name);
         clusterToDelete = pathToCluster(path);
-        strcpy(filename, fileName);
     }
 
     if (FATbitmap[clusterToDelete] == '0')
         return -1;
 
-    strcpy(toDelete.name, filename);
+    strcpy(toDelete.name, name);
     toDelete.fileType = 0x01;
 
     if(deleteEnt(clusterToDelete, toDelete) == -1)
         return -1;
+
 
     return 0;
 }
