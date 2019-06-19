@@ -411,7 +411,7 @@ int deleteEnt(int clusterDir, DIRENT2 record){
     // limpa a entrada, todo tipo de arquivo faz isso
     writeCluster(clusterDir, emptyBuffer, (found * sizeof(DIRENT2)) , sizeof(DIRENT2) );
     FATwrite();
-    
+
     free(buffer);
     free(emptyBuffer);
     free(folderFind);
@@ -650,108 +650,28 @@ int makeAnewHandle(){
 }
 
 int deleteFile(char * filename){
-    char * absolute;
-    char * firstOut;
-    char * secondOut;
-    int clusterOfDir;//cluster que contem o diretorio que contem o arquivo
-    int clusterToDelete;//cluster que tem q apagar
-    unsigned char* bufferWithNulls = malloc(sizeof(unsigned char)*SECTOR_SIZE*superBlock.SectorsPerCluster);
-    DWORD FATrepresentation = 0;
-    BYTE typeToDelete = TYPEVAL_REGULAR;
-    char *linkOutput;
-    //variaveis para a verificação
-    int i;
-    int isFile = 0;
-    int clusterByteSize = sizeof(unsigned char)*SECTOR_SIZE*superBlock.SectorsPerCluster;
-    unsigned char* buffer = malloc(clusterByteSize);
-    //
+    char * path;
+    char * fileName;
+    int clusterToDelete;    //cluster que tem q apagar
+    DIRENT2 toDelete;
 
-    memset(bufferWithNulls,'\0',SECTOR_SIZE*superBlock.SectorsPerCluster);// coloca /0 em todo o buffer
+    if(!strrchr(filename, "/"))
+        clusterToDelete = pathToCluster(currentPath.absolute);
+    else{
+        separatePath(filename, &path, &fileName);
+        clusterToDelete = pathToCluster(path);
+        strcpy(filename, fileName);
+    }
 
-    if(toAbsolutePath(filename, currentPath.absolute, &absolute)){
-        //printf("\nERRO INESPERADO\n");//se der erro aqui eu n sei pq, tem q ver ainda
-        free(absolute);
-        free(firstOut);
-        free(secondOut);
+    if (FATbitmap[clusterToDelete] == '0')
         return -1;
-    }
 
-    if(separatePath(absolute, &firstOut, &secondOut)){
-        //printf("\nERRO INESPERADo\n");//se der erro aqui eu n sei pq, tem q ver ainda
-        free(absolute);
-        free(firstOut);
-        free(secondOut);
+    strcpy(toDelete.name, dirName);
+    toDelete.fileType = 0x01;
+
+    if(deleteEnt(clusterToDelete, toDelete) == -1)
         return -1;
-    }
 
-    if(!isRightName(secondOut)){
-        return -1;
-    }
-
-    if((clusterOfDir = pathToCluster(firstOut)) == -1){
-        free(absolute);
-        free(firstOut);
-        free(secondOut);
-         return -1;
-    }
-
-    if((clusterToDelete = pathToCluster(absolute))== -1){
-        free(absolute);
-        free(firstOut);
-        free(secondOut);
-        return -1;
-    }
-
-//Verificação de se é um TYPE FILE mesmo
-    readCluster(clusterOfDir, buffer);
-    for(i = 0; i < clusterByteSize; i+= sizeof(struct t2fs_record)) {
-        if ( (strcmp((char *)buffer+i+1, secondOut) == 0) && (((BYTE) buffer[i]) == typeToDelete) && !isFile ) {
-            isFile = 1;
-        }
-    }
-    //se n for do tipo File, n pode deletar.
-    if(isFile == 0){
-        free(absolute);
-        free(firstOut);
-        free(secondOut);
-        return -1;
-    }
-//Fim da verificação
-
-    struct t2fs_record folderContent;
-
-    folderContent.TypeVal = TYPEVAL_INVALIDO;
-    strcpy(folderContent.name, "\0");
-    folderContent.bytesFileSize = 0;
-    folderContent.clustersFileSize = 0;
-    folderContent.firstCluster = 0;
-
-    if(writeZeroClusterFolderByName(clusterOfDir, folderContent, secondOut, typeToDelete) == -1){
-        free(absolute);
-        free(firstOut);
-        free(secondOut);
-        return -1;
-    }
-
-    closeFileByFristCluster(clusterToDelete);
-
-    while( FATrepresentation != END_OF_FILE && FATrepresentation != BAD_SECTOR){
-
-        readInFAT(clusterToDelete,&FATrepresentation);//le o proximo cluster que tem conteudo do arquivo
-        writeInFAT(clusterToDelete, 0);//marca 0 naquela represetanção, pra libera-lá
-
-        //escreve o buffer cheio de nulls dentro daquele cluster q tinha o arquivo.
-        writeCluster(clusterToDelete,bufferWithNulls,0,SECTOR_SIZE*superBlock.SectorsPerCluster);
-
-        //atualiza o novo cluster
-        if(FATrepresentation != END_OF_FILE && FATrepresentation != BAD_SECTOR){
-            clusterToDelete = (int) FATrepresentation;
-        }
-
-    }
-    free(absolute);
-    free(firstOut);
-    free(secondOut);
     return 0;
 }
 
