@@ -788,9 +788,11 @@ int createSoftlink(char *linkname,char *filename){ //Fruto do REUSO
     int clusterToLink;
     int i;
     DIRENT2 toLink;
-    DIRENT2 *linkType;
+    DIRENT2 *linkType = malloc (superblock.clusterSize);
     int found = 0;
     const char dir_div = '/';
+
+    memset(&toLink,'\0', sizeof(DIRENT2));
 
     if(strrchr(filename, dir_div) == NULL){
 
@@ -807,7 +809,6 @@ int createSoftlink(char *linkname,char *filename){ //Fruto do REUSO
         clusterToLink = pathToCluster(filename);
     }
 
-    puts(name);
 
     if(strlen(name) <= 0)
       return -1;
@@ -816,24 +817,23 @@ int createSoftlink(char *linkname,char *filename){ //Fruto do REUSO
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
         if (strcmp(linkType[i].name, name) == 0){
-
+            toLink.fileType = linkType[i].fileType + 0x02;
+            toLink.fileSize = linkType[i].fileSize;
             found = 1;
             break;
         }
       }
 
-
     if(!found)
         return -1;
 
-
     strcpy(toLink.name, "");
-    strcpy(toLink.name, name);
-    toLink.fileType = 0x03;
-    toLink.fileSize = 0;
+    strcpy(toLink.name, linkname);
     toLink.firstCluster = clusterToLink;
 
-    createEnt(1, toLink);
+    createEnt(currentPath.clusterNo, toLink);
+
+    free(linkType);
 
     return 0;
 }

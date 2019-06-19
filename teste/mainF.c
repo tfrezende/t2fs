@@ -109,11 +109,10 @@ int main(int argc, char *argv[])
 
 			create2("/jubileu/teste");
 
-			ln2("link sadboy", "jubileu");
-
-
-
 			ln2("link 2", "/cechin calvo cabeludo");
+
+			ln2("link loucura", "/jubileu/teste");
+
 
 			continue;
 		}
