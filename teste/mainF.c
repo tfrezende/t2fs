@@ -100,6 +100,8 @@ int main(int argc, char *argv[])
 			int i, teste;
 			char *path;
 		    char *dirName;
+			DIRENT2 dir;
+			int handle;
 
 		 	error = FATformat(8);
 
@@ -109,11 +111,27 @@ int main(int argc, char *argv[])
 
 			create2("/jubileu/teste");
 
+			handle = opendir2("/cechin calvo cabeludo");
+
+			readdir2(handle, &dir);
+
+			printf("Nome 1: %s\n 1st cluster 1: %d\n", dir.name, dir.firstCluster);
+
+			handle = opendir2("/jubileu");
+
+			readdir2(handle, &dir);
+
+			printf("Nome 2: %s\n 1st cluster 2: %d\n", dir.name, dir.firstCluster);
+/*
+			handle = opendir2("jubileu");
+
+			readdir2(handle, &dir);
+
+			printf("Nome 3: %s\n", dir.name);
+
 			ln2("link sadboy", "jubileu");
 
-
-
-			ln2("link 2", "/cechin calvo cabeludo");
+			ln2("link 2", "/cechin calvo cabeludo");*/
 
 			continue;
 		}

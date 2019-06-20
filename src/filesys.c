@@ -798,12 +798,13 @@ DIRENT2 readDir(DIR2 handle){
     for(i = 0;i < 10;i++){
 
        if(openDirectories[i].handle == handle){
-
+           printf("Read: %d\n",openDirectories[i].clusterDir);
            folderContent = readDataClusterFolder(openDirectories[i].clusterDir);
 
            if(openDirectories[i].noReads < folderSize){
                openDirectories[i].directory.fileSize = folderContent[openDirectories[i].noReads].fileSize;
                openDirectories[i].directory.fileType = folderContent[openDirectories[i].noReads].fileType;
+                openDirectories[i].directory.firstCluster = folderContent[openDirectories[i].noReads].firstCluster;
                strcpy(openDirectories[i].directory.name, folderContent[openDirectories[i].noReads].name);
                openDirectories[i].noReads++;
 
