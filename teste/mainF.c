@@ -111,6 +111,7 @@ int main(int argc, char *argv[])
 
 			create2("/jubileu/teste");
 
+<<<<<<< HEAD
 			handle = opendir2("/cechin calvo cabeludo");
 
 			readdir2(handle, &dir);
@@ -132,6 +133,12 @@ int main(int argc, char *argv[])
 			ln2("link sadboy", "jubileu");
 
 			ln2("link 2", "/cechin calvo cabeludo");*/
+=======
+			ln2("link 2", "/cechin calvo cabeludo");
+
+			ln2("link loucura", "/jubileu/teste");
+
+>>>>>>> bfe3d59083ab19b5778f4fc1dc08dbcc5361e7c4
 
 			continue;
 		}
