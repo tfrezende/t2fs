@@ -766,6 +766,7 @@ int closeFile(FILE2 handle){
 DIR2 openDir(char *pathname){
     int i;
     int dirCluster;
+    int handle = makeAnewHandle();
     char *linkOutput;
 
     if(strcmp(pathname, "/") == 0)
@@ -778,7 +779,8 @@ DIR2 openDir(char *pathname){
 
     for(i = 0; i < 10; i++){
         if(openDirectories[i].handle == -1){
-            openDirectories[i].handle = i;
+            
+            openDirectories[i].handle = handle;
             openDirectories[i].noReads = 0;
             openDirectories[i].clusterDir = dirCluster;
 
@@ -823,7 +825,6 @@ int closeDir(DIR2 handle){
 }
 
 int createSoftlink(char *linkname,char *filename){              // Só funciona com o pathname
-                                                                // Nobody yes door
 
     char * path;
     char * name;
@@ -962,6 +963,7 @@ int isLink(char * path, char ** output){
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
         if ( (strcmp(folderContent[i].name, fileName) == 0) && (folderContent[i].fileType == 0x03) )
             link = 1;
+            break;
     }
 
     if(!link) {
@@ -986,75 +988,61 @@ int isLink(char * path, char ** output){
 }
 
 FILE2 openFile (char * filename){
-    char * absolute;
-    char * firstOut;
-    char * secondOut;
-    //int firstClusterFreeInFAT;
-    int handle;
-    handle = makeAnewHandle();
+    char * pathname;
+    char * name;
+    int handle = makeAnewHandle();
+    DIRENT2 newFileToRecord;
     int firstClusterOfFile;
     char *linkOutput;
-
     int i;
     int isFile= 0;
-    int clusterByteSize = sizeof(unsigned char)*SECTOR_SIZE*superBlock.SectorsPerCluster;
     unsigned char* buffer = malloc(clusterByteSize);
     int clusterOfDir;
+    DIRENT2* folderContent = malloc(superblock.clusterSize);
 
-    if(link(filename, &linkOutput)== -1)
-            return -1;
+    if(isLink(pathname, &linkOutput)){
+        separatePath(linkOutput, pathname, name);
+        strcpy(filename, "");
+        strcpy(filename, name);
+    }
+    else
+        pathname = currentPath.absolute;
 
-    if(toAbsolutePath(linkOutput, currentPath.absolute, &absolute)){
-        //printf("\nERRO INESPERADO\n");//se der erro aqui eu n sei pq, tem q ver ainda
-        return -2;
+    clusterOfDir = pathToCluster(pathname);
+
+    folderContent = readDataClusterFolder(clusterOfDir);
+
+    for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
+        if ( (strcmp(folderContent[i].name, filename) == 0) && (folderContent[i].fileType == 0x02)  )
+            isFile = 1;
+            break;
     }
 
-    if(separatePath(absolute, &firstOut, &secondOut)){
-        //printf("\nERRO INESPERADo\n");//se der erro aqui eu n sei pq, tem q ver ainda
-        return -2;
-    }
-
-    if(!isRightName(secondOut)){
+    if(!isFile) {
         return -1;
     }
-//verificação
-    clusterOfDir = pathToCluster(firstOut);
 
-    readCluster(clusterOfDir, buffer);
-    if(strlen(secondOut) > 0){
-        for(i = 0; i < clusterByteSize; i+= sizeof(struct t2fs_record)) {
-            if ( (strcmp((char *)buffer+i+1, secondOut) == 0) && (((BYTE) buffer[i]) == TYPEVAL_REGULAR) && !isFile ) {
-                isFile = 1;
-            }
-        }
-        if(isFile == 0){
-            return -3;
-        }
-    }
-//fim da verificação
+    firstClusterOfFile = folderContent[i].firstCluster;
 
-    firstClusterOfFile = pathToCluster(absolute);
 //caminho inexistente
     if(firstClusterOfFile == -1){
-        return -4;
+        return -1;
     }
+
 //n tinha espaço para adicionar um novo arquivos
     if(handle == -1){
-        free(absolute);
-        free(firstOut);
-        free(secondOut);
-        return -5;
+        return -1;
     }
-    struct diskf newFileToRecord;
 
-    newFileToRecord.clusterNo = firstClusterOfFile;
-    newFileToRecord.currPointer = 0;
-    newFileToRecord.file = handle;
-    //adicionei essas linhas pois uso o path na hora de saber o tamanho do arquivo - SAMUEL
-    newFileToRecord.clusterDir=pathToCluster(firstOut);
+    for(i = 0; i < 10; i++){
+        if(openFiles[i].handle == -1){
 
-//atualização do openFiles
-    memcpy(&openFiles[handle-1], &newFileToRecord, sizeof(struct diskf));
+            openFiles[i].file = handle;
+            openFiles[i].currPointer = 0;
+            openFiles[i].clusterNo = firstClusterOfFile;
+            openFiles[i].clusterDir = pathToCluster(pathname);
 
-    return newFileToRecord.file;
+            return openFiles[i].handle;
+        }
+    }
 }

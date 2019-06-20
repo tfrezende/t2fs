@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 			int sector;
 
 
-			for(sector = 0; sector < 10; sector ++){
+			for(sector = 32; sector < 45; sector ++){
 				int error = read_sector (sector, testeleitura);
 				if (error) {
 					printf ("read_sector (%d) error = %d\n", sector, error);
