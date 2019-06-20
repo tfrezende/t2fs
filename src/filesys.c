@@ -716,35 +716,6 @@ int isInCluster(int clusterNo, DIRENT2 toFind) {
     return 0;
 }
 
-/*int isLink (char *filename, char ** output){
-
-    char * path;
-    char * name;
-    int i;
-    int clusterLink;
-    const char dir_div = '/';
-    DIRENT2* linkIn = malloc ( superblock.clusterSize );
-
-    if(strrchr(filename, dir_div) == NULL){
-        clusterLink = pathToCluster(currentPath.absolute);
-        strcpy(name, filename);
-    }
-    else{
-        separatePath(filename, &path, &name);
-        clusterLink = pathToCluster(path);
-    }
-
-    linkIn = readDataClusterFolder(clusterLink);
-
-    for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
-        if ( (strcmp(linkIn[i].name, name) == 0) && (linkIn[i].fileType == 0x03) )
-            return clusterLink;
-    }
-
-    return 0;
-}
-*/
-
 int closeFile(FILE2 handle){
 
     int i;
@@ -779,7 +750,7 @@ DIR2 openDir(char *pathname){
 
     for(i = 0; i < 10; i++){
         if(openDirectories[i].handle == -1){
-            
+
             openDirectories[i].handle = handle;
             openDirectories[i].noReads = 0;
             openDirectories[i].clusterDir = dirCluster;
@@ -988,6 +959,7 @@ int isLink(char * path, char ** output){
 }
 
 FILE2 openFile (char * filename){
+
     char * pathname;
     char * name;
     int handle = makeAnewHandle();

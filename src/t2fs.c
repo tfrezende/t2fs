@@ -70,7 +70,7 @@ FILE2 open2 (char *filename) {
 	if (strcmp(filename, "") == 0)
 		return -1;
 
-	return -1;
+	return openFile(filename);
 }
 
 /*-----------------------------------------------------------------------------
