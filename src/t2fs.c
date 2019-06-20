@@ -77,6 +77,9 @@ FILE2 open2 (char *filename) {
 Função:	Função usada para fechar um arquivo.
 -----------------------------------------------------------------------------*/
 int close2 (FILE2 handle) {
+	if (handle < 0)
+		return -1;
+
 	return closeFile(handle);
 }
 
@@ -109,7 +112,10 @@ int truncate2 (FILE2 handle) {
 Função:	Altera o contador de posição (current pointer) do arquivo.
 -----------------------------------------------------------------------------*/
 int seek2 (FILE2 handle, DWORD offset) {
-	return -1;
+	if (handle < 0 || offset < 0)
+		return -1;
+
+	return updatePointer(handle, offset);
 }
 
 /*-----------------------------------------------------------------------------
@@ -145,14 +151,17 @@ int chdir2 (char *pathname) {
 Função:	Função usada para obter o caminho do diretório corrente.
 -----------------------------------------------------------------------------*/
 int getcwd2 (char *pathname, int size) {
-	if((strlen(currentPath.absolute) + 1) > size){
+	if((strlen(currentPath.absolute) + 1) > size)
 		return -1;
-	}
-	else{
-		memset(pathname,'\0',size);
-		strcpy(pathname, currentPath.absolute);
-		return 0;
-	}
+
+	if(strcmp(pathname,"") == 0)
+		return -1;
+
+	memset(pathname,'\0',size);
+	strcpy(pathname, currentPath.absolute);
+
+	return 0;
+
 }
 
 /*-----------------------------------------------------------------------------
@@ -162,20 +171,33 @@ DIR2 opendir2 (char *pathname) {
 	if (strcmp(pathname, "") == 0)
 		return -1;
 
-	return -1;
+	return openDir(pathname);
 }
 
 /*-----------------------------------------------------------------------------
 Função:	Função usada para ler as entradas de um diretório.
 -----------------------------------------------------------------------------*/
 int readdir2 (DIR2 handle, DIRENT2 *dentry) {
-	return -1;
+	DIRENT2 dir;
+
+	if (handle < 0)
+		return -1;
+
+	dir = readDir(handle);
+	*dentry = dir;
+
+	if(strcmp(dir.name, "") == 0)
+		return -1;
+
+	return 0;
 }
 
 /*-----------------------------------------------------------------------------
 Função:	Função usada para fechar um diretório.
 -----------------------------------------------------------------------------*/
 int closedir2 (DIR2 handle) {
+	if (handle < 0)
+		return -1;
 
 	return closeDir(handle);
 }

@@ -222,6 +222,7 @@ int changeDir(char * pathname){
     int i;
     char *dirName;
     char *path;
+    char *linkOutput;
     unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.clusterSize);
     DIRENT2 *findPath = malloc ( superblock.clusterSize );
 
@@ -233,6 +234,8 @@ int changeDir(char * pathname){
         currentPath.clusterNo = superblock.RootDirCluster;
         return 0;
     }
+    if(isLink(pathname, &linkOutput))
+        pathname = linkOutput;
 
     if(separatePath(pathname, &path, &dirName) != 0)
         return -1;
@@ -714,7 +717,7 @@ int isInCluster(int clusterNo, DIRENT2 toFind) {
     return 0;
 }
 
-int isLink (char *filename){
+/*int isLink (char *filename, char ** output){
 
     char * path;
     char * name;
@@ -724,7 +727,7 @@ int isLink (char *filename){
     DIRENT2* linkIn = malloc ( superblock.clusterSize );
 
     if(strrchr(filename, dir_div) == NULL){
-        clusterLink= pathToCluster(currentPath.absolute);
+        clusterLink = pathToCluster(currentPath.absolute);
         strcpy(name, filename);
     }
     else{
@@ -741,7 +744,7 @@ int isLink (char *filename){
 
     return 0;
 }
-
+*/
 
 int closeFile(FILE2 handle){
 
@@ -760,6 +763,59 @@ int closeFile(FILE2 handle){
 
     return -1;
 }
+
+DIR2 openDir(char *pathname){
+    int i;
+    int dirCluster;
+    char *linkOutput;
+
+    if(strcmp(pathname, "/") == 0)
+        dirCluster = superblock.RootDirCluster;
+
+    if(isLink(pathname, &linkOutput))
+        pathname = linkOutput;
+
+    dirCluster = pathToCluster(pathname);
+
+    for(i = 0; i < 10; i++){
+        if(openDirectories[i].handle == -1){
+            openDirectories[i].handle = i;
+            openDirectories[i].noReads = 0;
+            openDirectories[i].clusterDir = dirCluster;
+
+            return openDirectories[i].handle;
+        }
+    }
+    return -1;
+}
+
+DIRENT2 readDir(DIR2 handle){
+
+    int i;
+    DIRENT2* folderContent = malloc(superblock.clusterSize);
+    int folderSize = superblock.clusterSize / sizeof(DIRENT2);
+
+    for(i = 0;i < 10;i++){
+
+       if(openDirectories[i].handle == handle){
+
+           folderContent = readDataClusterFolder(openDirectories[i].clusterDir);
+
+           if(openDirectories[i].noReads < folderSize){
+               openDirectories[i].directory.fileSize = folderContent[openDirectories[i].noReads].fileSize;
+               openDirectories[i].directory.fileType = folderContent[openDirectories[i].noReads].fileType;
+               strcpy(openDirectories[i].directory.name, folderContent[openDirectories[i].noReads].name);
+               openDirectories[i].noReads++;
+
+               free(folderContent);
+               return openDirectories[i].directory;
+           }
+       }
+    }
+    return setNullDirent();
+}
+
+
 
 int closeDir(DIR2 handle){
 
@@ -836,4 +892,110 @@ int createSoftlink(char *linkname,char *filename){ //Fruto do REUSO
     free(linkType);
 
     return 0;
+}
+
+int updatePointer(FILE2 handle, DWORD offset){
+
+    int found = 0;
+    int currentPointer;
+    int currentCluster;
+    int fileNo;
+    int newCursorPointer;
+    int i;
+
+    //procura o arquivo pelo handle
+    for(i=0; i < 10; i++){
+        if(openFiles[i].file == handle){
+            found = 1;
+            fileNo = i;
+            break;
+        }
+
+    }
+    if(found == 0){
+        return -1;
+    }
+    //atribuicao dos parametros do arquivo
+    currentPointer = openFiles[fileNo].currPointer;
+    currentCluster = openFiles[fileNo].clusterNo;
+
+    //novo cp
+    newCursorPointer = (int)offset;
+
+    if(newCursorPointer <- 1)
+        return -1;
+
+    if(newCursorPointer > sizeOfFile(openFiles[fileNo].clusterDir, openFiles[fileNo].clusterNo) || newCursorPointer < 0){
+        return -1;
+    }
+
+    if((int)offset == -1){
+        newCursorPointer= sizeOfFile(openFiles[fileNo].clusterDir, openFiles[fileNo].clusterNo) + 1;
+    }
+
+    openFiles[fileNo].currPointer= newCursorPointer;
+
+    return 0;
+}
+
+int sizeOfFile(int clusterDir, int clusterFile){
+
+    DIRENT2* folderContent = malloc(superblock.clusterSize);
+    int folderSize = (superblock.clusterSize) / sizeof(DIRENT2 );
+    int i;
+    //verifica o tamanho do arquivo com o nome dado;
+    folderContent = readDataClusterFolder(clusterDir);
+
+    for(i = 0; i < folderSize; i++){
+
+        if(folderContent[i].firstCluster == clusterFile){
+            return (int)folderContent[i].fileSize;
+        }
+    }
+    return -1;
+}
+
+int isLink(char * path, char ** output){
+    int i;
+    int link = 0;
+    int clusterByteSize = superblock.clusterSize;
+    unsigned char* buffer = malloc(clusterByteSize);
+    char * pathToFile;
+    char * fileName;
+    int pathClusterNo;
+    int linkClusterNo;
+
+    separatePath(path, &pathToFile, &fileName);
+
+    pathClusterNo = pathToCluster(pathToFile);
+
+    readCluster(pathClusterNo, buffer);
+
+    for(i = 0; i < clusterByteSize; i += sizeof(DIRENT2)) {
+        if ((strcmp((char *)buffer+i+1, fileName) == 0) && (((BYTE) buffer[i]) == 0x03 )) {
+            link = 1;
+            break;
+        }
+    }
+
+    if(!link) {
+        free(buffer);
+        *output = malloc(sizeof(char)*(strlen(path)+1));
+        strcpy(*output,path);
+
+        return 0;
+    }
+
+    linkClusterNo = pathToCluster(path);
+
+    memset(buffer,0,clusterByteSize);
+
+    readCluster(linkClusterNo,buffer);
+
+    *output = malloc(sizeof(char)*(strlen((char*)buffer)+1));
+    strcpy(*output,(char*)buffer);
+
+    free(buffer);
+
+    return 1;
 }
