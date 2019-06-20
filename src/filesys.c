@@ -1050,7 +1050,7 @@ FILE2 openFile (char * filename){
     return -1;
 }
 
-int writeFile(FILE2 handle, char * buffer, int size) {
+int writeFile(FILE2 handle, char * buffer, int size, int truncate) {
     int i = 0;
     int fileNo;
     int found = 0;
@@ -1060,7 +1060,9 @@ int writeFile(FILE2 handle, char * buffer, int size) {
     int currentCluster;
     int nextCluster;
 
-    size = strlen(buffer);
+    if(!truncate)
+        size = strlen(buffer);
+
     remainingSize = size;
 
     int clusterSize = superblock.clusterSize;
@@ -1377,6 +1379,29 @@ int readFile (FILE2 handle, char *buffer, int size){
 }
 
 int truncateFile (FILE2 handle){
+    int j;
+    int found;
+    char *buffer = malloc(sizeof(unsigned char) * superblock.clusterSize * nClusters);
+
+    memset(buffer, '\0', sizeof(unsigned char) * superblock.clusterSize * nClusters);
+
+    for(j = 0;j < 10 && found == 0; j++){
+        if(openFiles[j].file == handle){
+            found = 1;
+        }
+
+    }
+
+    if(found==0){
+        free(buffer);
+        return -1;
+    }
+
+    writeFile(handle, buffer, realFileSize(handle), 1);
+
+    updateFileSize(handle, (DWORD) openFiles[j].currPointer);
+
+    free(buffer);
 
     return 0;
 }

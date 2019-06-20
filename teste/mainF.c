@@ -129,16 +129,17 @@ int main(int argc, char *argv[])
 			write2(handle, "ainda não tenho certeza, pq esse cluster é grande pra cacete então vamo escrever coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 1000);
 			write2(handle, "bom ser precavido e escrever mais coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 1000);
 
-			printf("Current Pointer antes do write: %d\n", openFiles[0].currPointer);
+			printf("Current Pointer antes do read: %d\n", openFiles[0].currPointer);
 
 			seek2(handle, 0);
 
 			bytesRead = read2(handle, buffer, 3023);
-			printf("se funcionar o bill gates vai morrer amanha: %d bytes lidos\n", bytesRead);
 
-			puts(buffer);
+			seek2(handle, 1000);
 
 			printf("Current Pointer depois do read: %d\n", openFiles[0].currPointer);
+
+			truncate2(handle);
 
 			free(buffer);
 			continue;

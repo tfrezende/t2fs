@@ -102,7 +102,7 @@ int write2 (FILE2 handle, char *buffer, int size) {
 	if(handle < 0 || size < 0)
 		return -1;
 
-	return writeFile(handle, buffer, size);
+	return writeFile(handle, buffer, size, 0);
 }
 
 /*-----------------------------------------------------------------------------

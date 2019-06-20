@@ -75,7 +75,7 @@ int isLink(char * path, char ** output);
 
 FILE2 openFile (char * filename);
 
-int writeFile(FILE2 handle, char *buffer, int size);
+int writeFile(FILE2 handle, char *buffer, int size, int truncate);
 
 int readFile(FILE2 handle, char *buffer, int size);
 
