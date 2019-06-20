@@ -1320,10 +1320,10 @@ int readFile (FILE2 handle, char *buffer, int size){ //IN PROGRESS
 
 
     //procura o arquivo pelo handle
-    for(j = 0;j < 10 && found == 0;j++){
+    for(j = 0;j < 10 && found == 0; j++){
         if(openFiles[j].file == handle){
-            found=1;
-            fileNo=j;
+            found = 1;
+            fileNo = j;
         }
 
     }
@@ -1374,7 +1374,7 @@ int readFile (FILE2 handle, char *buffer, int size){ //IN PROGRESS
     if(i == 0)
         return -1;
 
-    openFiles[fileNo].currPointer +=i;
+    openFiles[fileNo].currPointer += i;
 
     return i;
 }

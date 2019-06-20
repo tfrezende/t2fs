@@ -117,17 +117,30 @@ int main(int argc, char *argv[])
 
 			handle = open2("no foco da dengue");
 
+			printf("Current Pointer antes do write 1: %d\n", openFiles[0].currPointer);
+
 			bytesWritten = write2(handle, "sera que escreve?", 20);
 
 			printf("milagrosamente escreveu sem segfault: %d bytes escritos\n", bytesWritten);
+
+			printf("Current Pointer depois do write 1: %d\n", openFiles[0].currPointer);
 
 			bytesWritten = write2(handle, "vamo escrever coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 400);
 
 			printf("caralho se essa porra escreveu agora vou fazer a microsoft falir: %d bytes escritos\n", bytesWritten);
 
-			bytesRead = read2(handle, buffer, 50);
+			printf("Current Pointer depois do write 2: %d\n", openFiles[0].currPointer);
+
+			seek2(handle, 0);
+
+			printf("Current Pointer depois do seek: %d\n", openFiles[0].currPointer);
+
+			bytesRead = read2(handle, buffer, 10);
 			printf("se funcionar o bill gates vai morrer amanha: %d bytes lidos\n");
 			puts(buffer);
+
+			printf("Current Pointer depois do read: %d\n", openFiles[0].currPointer);
+
 			free(buffer);
 			continue;
 		}
