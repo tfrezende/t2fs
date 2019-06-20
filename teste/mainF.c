@@ -111,34 +111,11 @@ int main(int argc, char *argv[])
 
 			create2("/jubileu/teste");
 
-<<<<<<< HEAD
-			handle = opendir2("/cechin calvo cabeludo");
-
-			readdir2(handle, &dir);
-
-			printf("Nome 1: %s\n 1st cluster 1: %d\n", dir.name, dir.firstCluster);
-
-			handle = opendir2("/jubileu");
-
-			readdir2(handle, &dir);
-
-			printf("Nome 2: %s\n 1st cluster 2: %d\n", dir.name, dir.firstCluster);
-/*
-			handle = opendir2("jubileu");
-
-			readdir2(handle, &dir);
-
-			printf("Nome 3: %s\n", dir.name);
-
-			ln2("link sadboy", "jubileu");
-
-			ln2("link 2", "/cechin calvo cabeludo");*/
-=======
-			ln2("link 2", "/cechin calvo cabeludo");
-
 			ln2("link loucura", "/jubileu/teste");
 
->>>>>>> bfe3d59083ab19b5778f4fc1dc08dbcc5361e7c4
+			ln2("link 2", "/jubileu");
+
+
 
 			continue;
 		}
@@ -148,7 +125,6 @@ int main(int argc, char *argv[])
 			unsigned char testeleitura[SECTOR_SIZE];
 			int sector;
 
-			printf("DIR : %d\n\n\n", sizeof(DIRENT2));
 
 			for(sector = 0; sector < 10; sector ++){
 				int error = read_sector (sector, testeleitura);

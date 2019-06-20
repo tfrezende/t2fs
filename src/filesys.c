@@ -565,7 +565,6 @@ int createEnt (int clusterDir, DIRENT2 newDirEnt){
         }
     }
 
-    printf("Dir : %d\n", dirSpace);
 
     if(dirSpace == -1){
         free(buffer);
@@ -837,44 +836,34 @@ int closeDir(DIR2 handle){
 
 }
 
-int createSoftlink(char *linkname,char *filename){ //Fruto do REUSO
+int createSoftlink(char *linkname,char *filename){              // Só funciona com o pathname
+                                                                // Nobody yes door
 
     char * path;
     char * name;
-    char * find = malloc (sizeof(char) * 50);
     int clusterToLink;
     int i;
     DIRENT2 toLink;
     DIRENT2 *linkType = malloc (superblock.clusterSize);
+    unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
     int found = 0;
-    const char dir_div = '/';
 
     memset(&toLink,'\0', sizeof(DIRENT2));
 
-    if(strrchr(filename, dir_div) == NULL){
+    separatePath(filename, &path, &name);
 
-        strcpy(find, currentPath.absolute);
-        if(!(strcmp(find,"/") == 0))
-            strcat(find, "/");
-        strcat(find, filename);
-        clusterToLink = pathToCluster(find);
+    clusterToLink = FindFreeCluster();
 
-        strcpy(name, filename);
-    }
-    else{
-        separatePath(filename, &path, &name);
-        clusterToLink = pathToCluster(filename);
-    }
-
+    if (clusterToLink == -1)
+        return -1;
 
     if(strlen(name) <= 0)
       return -1;
 
-    linkType = readDataClusterFolder(currentPath.clusterNo);
+    linkType = readDataClusterFolder(pathToCluster(path));
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
         if (strcmp(linkType[i].name, name) == 0){
-            toLink.fileType = linkType[i].fileType + 0x02;
             toLink.fileSize = linkType[i].fileSize;
             found = 1;
             break;
@@ -886,11 +875,22 @@ int createSoftlink(char *linkname,char *filename){ //Fruto do REUSO
 
     strcpy(toLink.name, "");
     strcpy(toLink.name, linkname);
+    toLink.fileType = 0x03;
     toLink.firstCluster = clusterToLink;
 
     createEnt(currentPath.clusterNo, toLink);
 
+    memset(buffer, '\0', superblock.sectorSize * superblock.SectorsPerCluster);
+
+    memcpy(buffer, filename, strlen(filename));
+
+    writeCluster(clusterToLink, buffer, 0, superblock.clusterSize);
+
+    FATbitmap[clusterToLink] = '1';
+    FATwrite();
+
     free(linkType);
+    free(buffer);
 
     return 0;
 }
