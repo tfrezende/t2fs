@@ -31,8 +31,6 @@ int main(int argc, char *argv[])
 
 		if (strcmp(cmd,"?")==0) {
 
-			mkdir2("/HORA DA VDD");
-
 			help();
 			continue;
 		}
@@ -103,7 +101,7 @@ int main(int argc, char *argv[])
 			int handle, handle1;
 			int bytesWritten = 0;
 			int bytesRead = 0;
-			char * buffer = malloc(500);
+			char *buffer = malloc(500);
 
 		 	error = FATformat(8);
 
@@ -135,8 +133,8 @@ int main(int argc, char *argv[])
 
 			printf("Current Pointer depois do seek: %d\n", openFiles[0].currPointer);
 
-			bytesRead = read2(handle, buffer, 10);
-			printf("se funcionar o bill gates vai morrer amanha: %d bytes lidos\n");
+			bytesRead = read2(handle, buffer, 20);
+			printf("se funcionar o bill gates vai morrer amanha: %d bytes lidos\n", bytesRead);
 			puts(buffer);
 
 			printf("Current Pointer depois do read: %d\n", openFiles[0].currPointer);
