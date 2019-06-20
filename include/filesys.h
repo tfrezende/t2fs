@@ -73,6 +73,8 @@ int sizeOfFile(int clusterDir, int clusterFile);
 
 int isLink(char * path, char ** output);
 
+FILE2 openFile (char * filename);
+
 typedef struct diskf {
     FILE2 file;
     int currPointer;

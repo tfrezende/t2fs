@@ -932,14 +932,18 @@ int isLink(char * path, char ** output){
     folderContent = readDataClusterFolder(pathClusterNo);
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
-        if ( (strcmp(folderContent[i].name, fileName) == 0) && (folderContent[i].fileType == 0x03) )
+        if ( (strcmp(folderContent[i].name, fileName) == 0) && (folderContent[i].fileType == 0x03) ){
             link = 1;
             break;
+        }
     }
 
     if(!link) {
         *output = malloc(sizeof(char)*(strlen(path)+1));
         strcpy(*output,path);
+
+        free(buffer);
+        free(folderContent);
 
         return 0;
     }
@@ -954,43 +958,56 @@ int isLink(char * path, char ** output){
     strcpy(*output,(char*)buffer);
 
     free(buffer);
+    free(folderContent);
 
     return 1;
 }
 
 FILE2 openFile (char * filename){
 
-    char * pathname;
-    char * name;
+    char * pathname = malloc (sizeof(char) * 50);
+    char * name = malloc (sizeof(char) * 50);
+    char * file = malloc (sizeof(char) * 50);
     int handle = makeAnewHandle();
-    DIRENT2 newFileToRecord;
     int firstClusterOfFile;
     char *linkOutput;
     int i;
     int isFile= 0;
-    unsigned char* buffer = malloc(clusterByteSize);
     int clusterOfDir;
     DIRENT2* folderContent = malloc(superblock.clusterSize);
 
-    if(isLink(pathname, &linkOutput)){
-        separatePath(linkOutput, pathname, name);
-        strcpy(filename, "");
-        strcpy(filename, name);
+    if(strrchr(filename, '/') == NULL){
+        strcpy(pathname,currentPath.absolute);
+        strcpy(file, filename);
     }
-    else
-        pathname = currentPath.absolute;
+    else{
+        if(isLink(filename, &linkOutput)){
+            separatePath(linkOutput, &pathname, &name);
+            strcpy(file, "");
+            strcpy(file, name);
+        }
+        else
+            return -1;
+    }
+
+    printf("Passa do link\n");
 
     clusterOfDir = pathToCluster(pathname);
 
     folderContent = readDataClusterFolder(clusterOfDir);
 
     for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
-        if ( (strcmp(folderContent[i].name, filename) == 0) && (folderContent[i].fileType == 0x02)  )
+        if ( (strcmp(folderContent[i].name, file) == 0) && (folderContent[i].fileType == 0x01)  ){
             isFile = 1;
             break;
+        }
     }
 
     if(!isFile) {
+        free(file);
+        free(name);
+        free(pathname);
+        free(folderContent);
         return -1;
     }
 
@@ -998,23 +1015,41 @@ FILE2 openFile (char * filename){
 
 //caminho inexistente
     if(firstClusterOfFile == -1){
+        free(file);
+        free(name);
+        free(pathname);
+        free(folderContent);
         return -1;
     }
 
 //n tinha espaço para adicionar um novo arquivos
     if(handle == -1){
+        free(file);
+        free(name);
+        free(pathname);
+        free(folderContent);
         return -1;
     }
 
     for(i = 0; i < 10; i++){
-        if(openFiles[i].handle == -1){
+        if(openFiles[i].file == -1){
 
             openFiles[i].file = handle;
             openFiles[i].currPointer = 0;
             openFiles[i].clusterNo = firstClusterOfFile;
             openFiles[i].clusterDir = pathToCluster(pathname);
 
-            return openFiles[i].handle;
+            free(file);
+            free(name);
+            free(pathname);
+            free(folderContent);
+            return openFiles[i].file;
         }
     }
+
+    free(file);
+    free(name);
+    free(pathname);
+    free(folderContent);
+    return -1;
 }

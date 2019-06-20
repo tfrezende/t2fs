@@ -100,12 +100,13 @@ int main(int argc, char *argv[])
 			int i, teste;
 			char *path;
 		    char *dirName;
-			DIRENT2 *dir = malloc( superblock.clusterSize );
 			int handle, handle1;
 
 		 	error = FATformat(8);
 
 			mkdir2("/jubileu");
+
+			create2("no foco da dengue");
 
 			mkdir2("/cechin calvo cabeludo");
 
@@ -115,13 +116,15 @@ int main(int argc, char *argv[])
 
 			ln2("link 2", "/jubileu");
 
-			handle = opendir2("/cechin calvo cabeludo");
+			chdir2("/cechin calvo cabeludo");
 
-			handle1 = opendir2("/link 2");
+			puts(currentPath.absolute);
+			printf("cluster : %d\n", currentPath.clusterNo );
 
-			readdir2(handle1, dir);
+			chdir2("/link 2");
 
-			free(dir);
+			puts(currentPath.absolute);
+			printf("cluster : %d\n", currentPath.clusterNo );
 
 			continue;
 		}
@@ -132,7 +135,7 @@ int main(int argc, char *argv[])
 			int sector;
 
 
-			for(sector = 32; sector < 45; sector ++){
+			for(sector = 0; sector < 10; sector ++){
 				int error = read_sector (sector, testeleitura);
 				if (error) {
 					printf ("read_sector (%d) error = %d\n", sector, error);
