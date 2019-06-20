@@ -984,3 +984,77 @@ int isLink(char * path, char ** output){
 
     return 1;
 }
+
+FILE2 openFile (char * filename){
+    char * absolute;
+    char * firstOut;
+    char * secondOut;
+    //int firstClusterFreeInFAT;
+    int handle;
+    handle = makeAnewHandle();
+    int firstClusterOfFile;
+    char *linkOutput;
+
+    int i;
+    int isFile= 0;
+    int clusterByteSize = sizeof(unsigned char)*SECTOR_SIZE*superBlock.SectorsPerCluster;
+    unsigned char* buffer = malloc(clusterByteSize);
+    int clusterOfDir;
+
+    if(link(filename, &linkOutput)== -1)
+            return -1;
+
+    if(toAbsolutePath(linkOutput, currentPath.absolute, &absolute)){
+        //printf("\nERRO INESPERADO\n");//se der erro aqui eu n sei pq, tem q ver ainda
+        return -2;
+    }
+
+    if(separatePath(absolute, &firstOut, &secondOut)){
+        //printf("\nERRO INESPERADo\n");//se der erro aqui eu n sei pq, tem q ver ainda
+        return -2;
+    }
+
+    if(!isRightName(secondOut)){
+        return -1;
+    }
+//verificação
+    clusterOfDir = pathToCluster(firstOut);
+
+    readCluster(clusterOfDir, buffer);
+    if(strlen(secondOut) > 0){
+        for(i = 0; i < clusterByteSize; i+= sizeof(struct t2fs_record)) {
+            if ( (strcmp((char *)buffer+i+1, secondOut) == 0) && (((BYTE) buffer[i]) == TYPEVAL_REGULAR) && !isFile ) {
+                isFile = 1;
+            }
+        }
+        if(isFile == 0){
+            return -3;
+        }
+    }
+//fim da verificação
+
+    firstClusterOfFile = pathToCluster(absolute);
+//caminho inexistente
+    if(firstClusterOfFile == -1){
+        return -4;
+    }
+//n tinha espaço para adicionar um novo arquivos
+    if(handle == -1){
+        free(absolute);
+        free(firstOut);
+        free(secondOut);
+        return -5;
+    }
+    struct diskf newFileToRecord;
+
+    newFileToRecord.clusterNo = firstClusterOfFile;
+    newFileToRecord.currPointer = 0;
+    newFileToRecord.file = handle;
+    //adicionei essas linhas pois uso o path na hora de saber o tamanho do arquivo - SAMUEL
+    newFileToRecord.clusterDir=pathToCluster(firstOut);
+
+//atualização do openFiles
+    memcpy(&openFiles[handle-1], &newFileToRecord, sizeof(struct diskf));
+
+    return newFileToRecord.file;
+}
