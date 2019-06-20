@@ -55,6 +55,10 @@ int makeAnewHandle();
 
 int closeFile(FILE2 handle);
 
+DIR2 openDir(char *path)
+
+int readDir(DIR2 handle, DIRENT2 * entry);
+
 int closeDir(DIR2 handle);
 
 int deleteFile(char * filename);
@@ -66,6 +70,8 @@ int createSoftlink(char *linkname,char *filename);
 int updatePointer(FILE2 handle, DWORD offset);
 
 int sizeOfFile(int clusterDir, int clusterFile);
+
+
 
 typedef struct diskf {
     FILE2 file;

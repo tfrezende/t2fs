@@ -761,6 +761,56 @@ int closeFile(FILE2 handle){
     return -1;
 }
 
+DIR2 openDir(char *path){
+    int i;
+    int dirCluster;
+
+    if(strcmp(path, "/") == 0)
+        dirCluster = superblock.RootDirCluster;
+
+    // Testar primeiro se é link?
+
+    dirCluster = pathToCluster(path);
+
+    for(i = 0; i < 10; i++){
+        if(openDirectories[i].handle == -1){
+            openDirectories[i].handle = i;
+            openDirectories[i].noReads = 0;
+            openDirectories[i].clusterDir = dirCluster;
+
+            return openDirectories[i].handle;
+        }
+    }
+    return -1;
+}
+
+DIRENT2 readDir(DIR2 handle, DIRENT2 * entry){
+
+    int i;
+    DIRENT2* folderContent = superblock.clusterSize;
+    int folderSize = superblock.clusterSize / sizeof(DIRENT2);
+
+    for(i = 0;i < 10;i++){
+
+       if(openDirectories[i].handle == handle){
+
+           folderContent = readDataClusterFolder(openDirectories[i].clusterDir);
+
+           if(openDirectories[i].noReads < folderSize){
+               openDirectories[i].directory.fileSize = folderContent[openDirectories[i].noReads].fileSize;
+               openDirectories[i].directory.fileType = folderContent[openDirectories[i].noReads].fileType;
+               strcpy(openDirectories[i].directory.name, folderContent[openDirectories[i].noReads].name);
+               openDirectories[i].noReads++;
+
+           return openDirectories[i].directory;
+           }
+       }
+    }
+    return setNullDirent();
+}
+
+}
+
 int closeDir(DIR2 handle){
 
     int i;
