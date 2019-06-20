@@ -30,13 +30,8 @@ Função:	Formata logicamente o disco virtual t2fs_disk.dat para o sistema de
 -----------------------------------------------------------------------------*/
 int format2 (int sectors_per_block) {
 
-	if (sectors_per_block == (2) || sectors_per_block == (16) || sectors_per_block == (32) || sectors_per_block == (64) || sectors_per_block ==  (128) ){
 		FATformat(sectors_per_block);
 		return 0;
-	}															// Tem que ver isso aqui, não tá funcionando esse OR
-	else
-		return -1;
-
 }
 
 /*-----------------------------------------------------------------------------
@@ -50,6 +45,8 @@ FILE2 create2 (char *filename) {
 	if (strcmp(filename, "") == 0)
 		return -1;
 
+	FATinit();
+
 	return createFile(filename);
 }
 
@@ -59,6 +56,8 @@ Função:	Função usada para remover (apagar) um arquivo do disco.
 int delete2 (char *filename) {
 	if (strcmp(filename, "") == 0)
 		return -1;
+
+	FATinit();
 
 	return deleteFile(filename);
 }
@@ -70,6 +69,8 @@ FILE2 open2 (char *filename) {
 	if (strcmp(filename, "") == 0)
 		return -1;
 
+	FATinit();
+
 	return openFile(filename);
 }
 
@@ -79,6 +80,8 @@ Função:	Função usada para fechar um arquivo.
 int close2 (FILE2 handle) {
 	if (handle < 0)
 		return -1;
+
+	FATinit();
 
 	return closeFile(handle);
 }
@@ -91,6 +94,8 @@ int read2 (FILE2 handle, char *buffer, int size) {
 	if(handle < 0 || size < 0)
 		return -1;
 
+	FATinit();
+
 	return readFile(handle, buffer, size);
 }
 
@@ -101,6 +106,8 @@ Função:	Função usada para realizar a escrita de uma certa quantidade
 int write2 (FILE2 handle, char *buffer, int size) {
 	if(handle < 0 || size < 0)
 		return -1;
+
+	FATinit();
 
 	return writeFile(handle, buffer, size, 0);
 }
@@ -114,6 +121,8 @@ int truncate2 (FILE2 handle) {
 	if(handle < 0)
 		return -1;
 
+	FATinit();
+
 	return truncateFile(handle);
 }
 
@@ -124,6 +133,8 @@ int seek2 (FILE2 handle, DWORD offset) {
 	if (handle < 0 || offset < 0)
 		return -1;
 
+	FATinit();
+
 	return updatePointer(handle, offset);
 }
 
@@ -133,8 +144,9 @@ Função:	Função usada para criar um novo diretório.
 int mkdir2 (char *pathname) {
 	if (strcmp(pathname, "") == 0)
 		return -1;
-	else
-		return createDir(pathname);
+
+	FATinit();
+	return createDir(pathname);
 }
 
 /*-----------------------------------------------------------------------------
@@ -143,8 +155,9 @@ Função:	Função usada para remover (apagar) um diretório do disco.
 int rmdir2 (char *pathname) {
 	if (strcmp(pathname, "") == 0)
 		return -1;
-	else
-		return deleteDir(pathname);
+
+	FATinit();
+	return deleteDir(pathname);
 }
 
 /*-----------------------------------------------------------------------------
@@ -153,6 +166,8 @@ Função:	Função usada para alterar o CP (current path)
 int chdir2 (char *pathname) {
 	if(strcmp(pathname,"") == 0)
 		return -1;
+
+	FATinit();
 	return changeDir(pathname);
 }
 
@@ -166,6 +181,7 @@ int getcwd2 (char *pathname, int size) {
 	if(strcmp(pathname,"") == 0)
 		return -1;
 
+	FATinit();
 	memset(pathname,'\0',size);
 	strcpy(pathname, currentPath.absolute);
 
@@ -179,7 +195,7 @@ Função:	Função que abre um diretório existente no disco.
 DIR2 opendir2 (char *pathname) {
 	if (strcmp(pathname, "") == 0)
 		return -1;
-
+	FATinit();
 	return openDir(pathname);
 }
 
@@ -191,6 +207,7 @@ int readdir2 (DIR2 handle, DIRENT2 *dentry) {
 	if (handle < 0)
 		return -1;
 
+	FATinit();
 	dentry = readDir(handle);
 
 	if(dentry == NULL)
@@ -206,6 +223,7 @@ int closedir2 (DIR2 handle) {
 	if (handle < 0)
 		return -1;
 
+	FATinit();
 	return closeDir(handle);
 }
 
@@ -220,5 +238,6 @@ int ln2 (char *linkname, char *filename) {
 	if (strcmp(filename, "") == 0)
 		return -1;
 
+	FATinit();
 	return createSoftlink(linkname, filename);
 }

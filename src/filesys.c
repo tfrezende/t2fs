@@ -9,6 +9,7 @@
 //      LEMBRAR QUE VAMOS USAR A FAT32 !!!!
 
 int init_FAT = 0;               // 0 se a FAT não foi inicializada, 1 se sim
+int sectors_per_block;
 
 DWORD convertToDword(unsigned char* buffer) {
     return (DWORD) ((DWORD)buffer[0] | (DWORD)buffer[1] << 8 |(DWORD)buffer[2] << 16 |(DWORD)buffer[3] << 24 );
@@ -41,9 +42,39 @@ unsigned char* dwordToLtlEnd(DWORD entry) {
 
 int FATinit () {            // Pode ser que o arquivo já esteja formatado, só iniciar as structs auxiliares e ler a FAT
 
-  int i;
+    BYTE buffer[SECTOR_SIZE];	// buffer para leitura do setor
+    int i;
+    DWORD sectors_per_block;
+
 
   if (init_FAT == 0) {
+
+      if (read_sector(0, buffer) != 0) {
+        return -1;
+      }
+
+
+      superblock.version = convertToWord(buffer);
+      superblock.sectorSize = convertToWord(buffer + 2);
+      superblock.partTable = convertToWord(buffer + 4);     // byte inicial da tabela de partições
+      superblock.numPartitions = convertToWord(buffer + 6); // número de partições no disco
+      superblock.pFirstBlock = convertToDword(buffer + 8);  // endereço do primeiro bloco da partição
+      superblock.pLastBlock = convertToDword(buffer + 12);   // endereço do último bloco da partição
+      memcpy(superblock.partName, buffer + 16, 8);
+
+      superblock.RootDirCluster = 1;    // root fixo no cluster 1
+
+      read_sector(1, buffer);
+      sectors_per_block = convertToDword(buffer);
+      superblock.clusterSize = SECTOR_SIZE * sectors_per_block;
+      superblock.SectorsPerCluster = sectors_per_block;
+
+      nClusters = ((superblock.pLastBlock - superblock.pFirstBlock) * SECTOR_SIZE)/superblock.clusterSize;
+
+      FATnext = malloc(sizeof(int)*nClusters);
+      FATbitmap = malloc(sizeof(char)*nClusters);
+
+      FATread();
 
       // Inicialização do vetor de arquivos abertos
       for (i = 0; i < 10; i++) {
@@ -60,7 +91,7 @@ int FATinit () {            // Pode ser que o arquivo já esteja formatado, só 
       strcpy(currentPath.absolute, "/");
       currentPath.clusterNo = 1;  // Caminho absoluto fixado no cluster 1
 
-      FATread();
+
 
       init_FAT = 1;
 
@@ -78,7 +109,7 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
       // Lẽ o MBR, retorna erro se não conseguir
       if (read_sector(0, buffer) != 0) {
         return -1;
-      };
+      }
 
       superblock.version = convertToWord(buffer);
       superblock.sectorSize = convertToWord(buffer + 2);
@@ -96,7 +127,7 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
       FATnext = malloc(sizeof(int)*nClusters);
       FATbitmap = malloc(sizeof(char)*nClusters);
 
-      FATnext[0] = 0;                   // Cluster 0 reservado para as informações de Próxima e Livre
+      FATnext[0] = sectors_per_block;                   // Cluster 0 reservado para as informações de Próxima e Livre
 
       FATbitmap[0] = '5';
 
@@ -109,7 +140,21 @@ int FATformat (int sectors_per_block) {       // Quem lê o MBR, apaga tudo e fa
 
       FATwrite();
 
-      FATinit();
+      for (i = 0; i < 10; i++) {
+                openFiles[i].file = -1;
+                openFiles[i].currPointer = -1;
+                openFiles[i].clusterNo = -1;
+                openDirectories[i].handle = -1;
+                openDirectories[i].noReads = -1;
+                openDirectories[i].clusterDir = -1;
+                openDirectories[i].directory = setNullDirent(); // falta definir esta função
+        }
+
+      currentPath.absolute = malloc(sizeof(char)*5); // Valor inicial arbitrario
+      strcpy(currentPath.absolute, "/");
+      currentPath.clusterNo = 1;  // Caminho absoluto fixado no cluster 1
+
+      init_FAT = 1;
 
       return 0;
 }
@@ -609,8 +654,6 @@ FILE2 createFile(char * filename){
         clusterToRecordFile = pathToCluster(path);
     }
 
-
-
 //caminho inexistente
     if(clusterToRecordFile == -1)
         return -1;
@@ -654,8 +697,8 @@ FILE2 createFile(char * filename){
 
     free(name);
 
-//retorna o handle já colocando ele no array de opens         openFile (filename)
-    return (5);
+//retorna o handle já colocando ele no array de open
+    return handle;
 }
 
 int makeAnewHandle(){
@@ -1059,6 +1102,7 @@ int writeFile(FILE2 handle, char * buffer, int size, int truncate) {
     int currentPointerInCluster;
     int currentCluster;
     int nextCluster;
+    int truncateCluster;
 
     if(!truncate)
         size = strlen(buffer);
@@ -1111,10 +1155,16 @@ int writeFile(FILE2 handle, char * buffer, int size, int truncate) {
     // Escreve nos clusters que já existem no arquivo
     while(nextCluster != -1 && remainingSize > 0) {
 
+        truncateCluster = nextCluster;
         nextCluster = FATnext[nextCluster];
 
         if(nextCluster != -1) {
             currentCluster = nextCluster;
+
+            if(truncate){
+                FATnext[truncateCluster] = -1;
+            }
+
 
             if(remainingSize <= (clusterSize)){
                 writeCluster(currentCluster,(unsigned char*)(buffer + bytesWritten),0,remainingSize);
@@ -1157,6 +1207,7 @@ int writeFile(FILE2 handle, char * buffer, int size, int truncate) {
     }
 
     openFiles[fileNo].currPointer += bytesWritten;
+    FATwrite();
 
     if(totalFileSize(handle) != 0)
         return -1;
@@ -1168,7 +1219,6 @@ int totalFileSize(FILE2 handle){
 
     int filesize;
 
-    //OBTENHO O TAMANHO REAL DO ARQUIVO -- OBS: AQUI TEM Q TER UM BUFFER ENORME PRA GARANTIR
     filesize = realFileSize(handle);
 
     if(filesize < 0){
