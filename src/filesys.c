@@ -1062,6 +1062,8 @@ int writeFile(FILE2 handle, char * buffer, int size) {
     int currentCluster;
     int nextCluster;
 
+    size = strlen(buffer);
+
     int clusterSize = superblock.clusterSize;
 
     while(i < 10){
