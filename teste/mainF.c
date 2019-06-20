@@ -100,8 +100,8 @@ int main(int argc, char *argv[])
 			int i, teste;
 			char *path;
 		    char *dirName;
-			DIRENT2 dir;
-			int handle;
+			DIRENT2 *dir = malloc( superblock.clusterSize );
+			int handle, handle1;
 
 		 	error = FATformat(8);
 
@@ -115,7 +115,13 @@ int main(int argc, char *argv[])
 
 			ln2("link 2", "/jubileu");
 
+			handle = opendir2("/cechin calvo cabeludo");
 
+			handle1 = opendir2("/link 2");
+
+			readdir2(handle1, dir);
+
+			free(dir);
 
 			continue;
 		}

@@ -57,7 +57,7 @@ int closeFile(FILE2 handle);
 
 DIR2 openDir(char *path);
 
-DIRENT2 readDir(DIR2 handle);
+DIRENT2* readDir(DIR2 handle);
 
 int closeDir(DIR2 handle);
 

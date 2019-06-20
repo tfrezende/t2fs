@@ -788,33 +788,19 @@ DIR2 openDir(char *pathname){
     return -1;
 }
 
-DIRENT2 readDir(DIR2 handle){
+DIRENT2* readDir(DIR2 handle){
 
     int i;
     DIRENT2* folderContent = malloc(superblock.clusterSize);
-    int folderSize = superblock.clusterSize / sizeof(DIRENT2);
 
     for(i = 0;i < 10;i++){
-
        if(openDirectories[i].handle == handle){
-           printf("Read: %d\n",openDirectories[i].clusterDir);
            folderContent = readDataClusterFolder(openDirectories[i].clusterDir);
-
-           if(openDirectories[i].noReads < folderSize){
-               openDirectories[i].directory.fileSize = folderContent[openDirectories[i].noReads].fileSize;
-               openDirectories[i].directory.fileType = folderContent[openDirectories[i].noReads].fileType;
-                openDirectories[i].directory.firstCluster = folderContent[openDirectories[i].noReads].firstCluster;
-               strcpy(openDirectories[i].directory.name, folderContent[openDirectories[i].noReads].name);
-               openDirectories[i].noReads++;
-
-               free(folderContent);
-               return openDirectories[i].directory;
-           }
+           return folderContent;
        }
     }
-    return setNullDirent();
+    return NULL;
 }
-
 
 
 int closeDir(DIR2 handle){
@@ -965,22 +951,20 @@ int isLink(char * path, char ** output){
     char * fileName;
     int pathClusterNo;
     int linkClusterNo;
+    DIRENT2* folderContent = malloc(superblock.clusterSize);
 
     separatePath(path, &pathToFile, &fileName);
 
     pathClusterNo = pathToCluster(pathToFile);
 
-    readCluster(pathClusterNo, buffer);
+    folderContent = readDataClusterFolder(pathClusterNo);
 
-    for(i = 0; i < clusterByteSize; i += sizeof(DIRENT2)) {
-        if ((strcmp((char *)buffer+i+1, fileName) == 0) && (((BYTE) buffer[i]) == 0x03 )) {
+    for(i = 0; i < ( superblock.clusterSize / sizeof(DIRENT2) ) ; i++){
+        if ( (strcmp(folderContent[i].name, fileName) == 0) && (folderContent[i].fileType == 0x03) )
             link = 1;
-            break;
-        }
     }
 
     if(!link) {
-        free(buffer);
         *output = malloc(sizeof(char)*(strlen(path)+1));
         strcpy(*output,path);
 
