@@ -1343,10 +1343,8 @@ int readFile (FILE2 handle, char *buffer, int size){
     readCluster(currentCluster, prebuffer);
 
     while( (currentCluster != -1 ) && (i < size) && (currentCluster > 1) && (currentCluster < ((superblock.pLastBlock * superblock.sectorSize)/superblock.clusterSize))){
-        printf("Chega a entrar aqui?\n");
         //percorre o buffer até achar o final do arquivo ou do cluster, transferindo os dados para saida
         while((currentPointerInCluster < superblock.clusterSize)  && (prebuffer[currentPointerInCluster] != '\0' && i<size)){
-            printf("Aqui nem se fala\n");
             buffer[i] = (unsigned char)prebuffer[currentPointerInCluster];
 
             currentPointerInCluster++;

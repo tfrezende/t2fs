@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 
 			printf("Current Pointer antes do write 1: %d\n", openFiles[0].currPointer);
 
-			bytesWritten = write2(handle, "sera que escreve?", 20);
+			bytesWritten = write2(handle, "sera que escreve?", 17);
 
 			printf("milagrosamente escreveu sem segfault: %d bytes escritos\n", bytesWritten);
 
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 
 			printf("Current Pointer depois do seek: %d\n", openFiles[0].currPointer);
 
-			bytesRead = read2(handle, buffer, 20);
+			bytesRead = read2(handle, buffer, 300);
 			printf("se funcionar o bill gates vai morrer amanha: %d bytes lidos\n", bytesRead);
 			puts(buffer);
 
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 			int sector;
 
 
-			for(sector = 0; sector < 10; sector ++){
+			for(sector = 25; sector < 42; sector ++){
 				int error = read_sector (sector, testeleitura);
 				if (error) {
 					printf ("read_sector (%d) error = %d\n", sector, error);
