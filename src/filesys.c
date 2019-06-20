@@ -1306,9 +1306,77 @@ int realFileSize (FILE2 handle){
     return i;
 }
 
-int readFile(FILE2 handle, char *buffer, int size){
+int readFile (FILE2 handle, char *buffer, int size){ //IN PROGRESS
 
-    return 0;
+    int found = 0;
+    int currentPointerInCluster;
+    int currentCluster;
+    int nextCluster;
+    int fileNo;
+    int j;
+    int i = 0;
+    int clusterCount = 0;
+    unsigned char *prebuffer = malloc(superblock.clusterSize);
+
+
+    //procura o arquivo pelo handle
+    for(j = 0;j < 10 && found == 0;j++){
+        if(openFiles[j].file == handle){
+            found=1;
+            fileNo=j;
+        }
+
+    }
+    if(found==0){
+        free(prebuffer);
+        return -1;
+    }
+
+    //atribuicao dos parametros do arquivo
+    currentPointerInCluster = openFiles[fileNo].currPointer;
+    currentCluster = openFiles[fileNo].clusterNo;
+
+    //le o cluster atual
+    readCluster(currentCluster, prebuffer);
+
+    while(currentCluster != -1 && i < size && currentCluster > 2 && currentCluster < superblock.pLastBlock){
+
+        //percorre o buffer até achar o final do arquivo ou do cluster, transferindo os dados para saida
+        while(currentPointerInCluster < superblock.clusterSize  && prebuffer[currentPointerInCluster] != '\0' && i<size){
+            buffer[i] = (unsigned char)prebuffer[currentPointerInCluster];
+
+            currentPointerInCluster++;
+            i++;
+        }
+        if(i >= size){
+            free(prebuffer);
+            return -1;
+        }
+
+        FATread();
+    //se ainda nao preencheu o tamanho descrito
+        if(i < size || i >= clusterCount*superblock.clusterSize){
+
+            nextCluster = FATnext[currentCluster];
+            free(prebuffer);
+
+            prebuffer = malloc(superblock.clusterSize);
+            readCluster(nextCluster, prebuffer);
+
+            currentPointerInCluster=0;
+            currentCluster = nextCluster;
+        }
+            clusterCount++;
+    }
+
+    free(prebuffer);
+
+    if(i == 0)
+        return -1;
+
+    openFiles[fileNo].currPointer +=i;
+
+    return i;
 }
 
 int truncateFile (FILE2 handle){

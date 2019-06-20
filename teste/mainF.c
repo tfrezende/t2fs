@@ -102,6 +102,8 @@ int main(int argc, char *argv[])
 		    char *dirName;
 			int handle, handle1;
 			int bytesWritten = 0;
+			int bytesRead = 0;
+			char * buffer = malloc(500);
 
 		 	error = FATformat(8);
 
@@ -117,12 +119,16 @@ int main(int argc, char *argv[])
 
 			bytesWritten = write2(handle, "sera que escreve?", 20);
 
-			printf("milagrosamente escreveu sem segfault: %d bytes escritos", bytesWritten);
+			printf("milagrosamente escreveu sem segfault: %d bytes escritos\n", bytesWritten);
 
 			bytesWritten = write2(handle, "vamo escrever coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 400);
 
-			printf("caralho se essa porra escreveu agora vou fazer a microsoft falir: %d bytes escritos", bytesWritten);
+			printf("caralho se essa porra escreveu agora vou fazer a microsoft falir: %d bytes escritos\n", bytesWritten);
 
+			bytesRead = read2(handle, buffer, 50);
+			printf("se funcionar o bill gates vai morrer amanha: %d bytes lidos\n");
+			puts(buffer);
+			free(buffer);
 			continue;
 		}
 
