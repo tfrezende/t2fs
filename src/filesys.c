@@ -987,8 +987,6 @@ FILE2 openFile (char * filename){
             return -1;
     }
 
-    printf("Passa do link\n");
-
     clusterOfDir = pathToCluster(pathname);
 
     folderContent = readDataClusterFolder(clusterOfDir);
@@ -1056,13 +1054,14 @@ int writeFile(FILE2 handle, char * buffer, int size) {
     int i = 0;
     int fileNo;
     int found = 0;
-    int remainingSize = size;
+    int remainingSize;
     int bytesWritten = 0;
     int currentPointerInCluster;
     int currentCluster;
     int nextCluster;
 
     size = strlen(buffer);
+    remainingSize = size;
 
     int clusterSize = superblock.clusterSize;
 
@@ -1338,28 +1337,21 @@ int readFile (FILE2 handle, char *buffer, int size){
     currentPointerInCluster = openFiles[fileNo].currPointer;
     currentCluster = openFiles[fileNo].clusterNo;
 
-    printf("Cluster currente : %d\n", currentCluster );
-    printf("Cluster ponter : %d\n", currentPointerInCluster);
-
     //le o cluster atual
     readCluster(currentCluster, prebuffer);
 
     while( (currentCluster != -1 ) && (i < size) && (currentCluster > 1) && (currentCluster < ((superblock.pLastBlock * superblock.sectorSize)/superblock.clusterSize))){
         //percorre o buffer até achar o final do arquivo ou do cluster, transferindo os dados para saida
-        while((currentPointerInCluster < superblock.clusterSize)  && (prebuffer[currentPointerInCluster] != '\0' && i<size)){
+        while((currentPointerInCluster < superblock.clusterSize)  && (prebuffer[currentPointerInCluster] != '\0') && (i<size)){
             buffer[i] = (unsigned char)prebuffer[currentPointerInCluster];
 
             currentPointerInCluster++;
             i++;
         }
-        if(i >= size){
-            free(prebuffer);
-            return -1;
-        }
 
     //se ainda nao preencheu o tamanho descrito
 
-        if(i < size || i >= clusterCount*superblock.clusterSize){
+        if( (i < size) || (i >= clusterCount*superblock.clusterSize)){
 
             nextCluster = FATnext[currentCluster];
             free(prebuffer);
@@ -1378,8 +1370,6 @@ int readFile (FILE2 handle, char *buffer, int size){
 
     if(i == 0)
         return -1;
-
-    printf("Aqui não ta chegando nem a pau\n");
 
     openFiles[fileNo].currPointer += i;
 

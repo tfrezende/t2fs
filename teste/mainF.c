@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 			int handle, handle1;
 			int bytesWritten = 0;
 			int bytesRead = 0;
-			char *buffer = malloc(500);
+			char *buffer = malloc(sizeof(char) * 3023);
 
 		 	error = FATformat(8);
 
@@ -115,26 +115,27 @@ int main(int argc, char *argv[])
 
 			handle = open2("no foco da dengue");
 
-			printf("Current Pointer antes do write 1: %d\n", openFiles[0].currPointer);
-
 			bytesWritten = write2(handle, "sera que escreve?", 17);
 
-			printf("milagrosamente escreveu sem segfault: %d bytes escritos\n", bytesWritten);
+			write2(handle, "vamo escrever coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 400);
+			write2(handle, "na busca do cluster cheio vamo escrever coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 1000);
+			write2(handle, "certeza que ainda não encheu então vamo escrever coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 1000);
+			write2(handle, "ainda não tenho certeza, pq esse cluster é grande pra cacete então vamo escrever coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 1000);
+			write2(handle, "bom ser precavido e escrever mais coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 1000);
 
-			printf("Current Pointer depois do write 1: %d\n", openFiles[0].currPointer);
+			write2(handle, "vamo escrever coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 400);
+			write2(handle, "na busca do cluster cheio vamo escrever coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 1000);
+			write2(handle, "certeza que ainda não encheu então vamo escrever coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 1000);
+			write2(handle, "ainda não tenho certeza, pq esse cluster é grande pra cacete então vamo escrever coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 1000);
+			write2(handle, "bom ser precavido e escrever mais coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 1000);
 
-			bytesWritten = write2(handle, "vamo escrever coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 400);
-
-			printf("caralho se essa porra escreveu agora vou fazer a microsoft falir: %d bytes escritos\n", bytesWritten);
-
-			printf("Current Pointer depois do write 2: %d\n", openFiles[0].currPointer);
+			printf("Current Pointer antes do write: %d\n", openFiles[0].currPointer);
 
 			seek2(handle, 0);
 
-			printf("Current Pointer depois do seek: %d\n", openFiles[0].currPointer);
-
-			bytesRead = read2(handle, buffer, 300);
+			bytesRead = read2(handle, buffer, 3023);
 			printf("se funcionar o bill gates vai morrer amanha: %d bytes lidos\n", bytesRead);
+
 			puts(buffer);
 
 			printf("Current Pointer depois do read: %d\n", openFiles[0].currPointer);
@@ -149,7 +150,7 @@ int main(int argc, char *argv[])
 			int sector;
 
 
-			for(sector = 25; sector < 42; sector ++){
+			for(sector = 25; sector < 34; sector ++){
 				int error = read_sector (sector, testeleitura);
 				if (error) {
 					printf ("read_sector (%d) error = %d\n", sector, error);
