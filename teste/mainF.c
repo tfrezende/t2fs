@@ -101,6 +101,7 @@ int main(int argc, char *argv[])
 			char *path;
 		    char *dirName;
 			int handle, handle1;
+			int bytesWritten = 0;
 
 		 	error = FATformat(8);
 
@@ -112,19 +113,15 @@ int main(int argc, char *argv[])
 
 			create2("/jubileu/teste");
 
-			ln2("link loucura", "/jubileu/teste");
+			handle = open2("no foco da dengue");
 
-			ln2("link 2", "/jubileu");
+			bytesWritten = write2(handle, "sera que escreve?", 20);
 
-			chdir2("/cechin calvo cabeludo");
+			printf("milagrosamente escreveu sem segfault: %d bytes escritos", bytesWritten);
 
-			puts(currentPath.absolute);
-			printf("cluster : %d\n", currentPath.clusterNo );
+			bytesWritten = write2(handle, "vamo escrever coisa pra caralho nessa porra nao sei mais o que escrever mais sei que essa porra tem que ser enorme e nao tenho criatividade o suficiente no momento pra elaborar uma disseracao de mestrado puta merda so quero deixar essa porra de string grande pra caralho", 400);
 
-			chdir2("/link 2");
-
-			puts(currentPath.absolute);
-			printf("cluster : %d\n", currentPath.clusterNo );
+			printf("caralho se essa porra escreveu agora vou fazer a microsoft falir: %d bytes escritos", bytesWritten);
 
 			continue;
 		}

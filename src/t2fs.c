@@ -88,7 +88,10 @@ Função:	Função usada para realizar a leitura de uma certa quantidade
 		de bytes (size) de um arquivo.
 -----------------------------------------------------------------------------*/
 int read2 (FILE2 handle, char *buffer, int size) {
-	return -1;
+	if(handle < 0 || size < 0)
+		return -1;
+
+	return readFile(handle, buffer, size);
 }
 
 /*-----------------------------------------------------------------------------
@@ -96,7 +99,10 @@ Função:	Função usada para realizar a escrita de uma certa quantidade
 		de bytes (size) de  um arquivo.
 -----------------------------------------------------------------------------*/
 int write2 (FILE2 handle, char *buffer, int size) {
-	return -1;
+	if(handle < 0 || size < 0)
+		return -1;
+
+	return writeFile(handle, buffer, size);
 }
 
 /*-----------------------------------------------------------------------------
@@ -105,7 +111,10 @@ Função:	Função usada para truncar um arquivo. Remove do arquivo
 		(current pointer), inclusive, até o seu final.
 -----------------------------------------------------------------------------*/
 int truncate2 (FILE2 handle) {
-	return -1;
+	if(handle < 0)
+		return -1;
+
+	return truncateFile(handle);
 }
 
 /*-----------------------------------------------------------------------------

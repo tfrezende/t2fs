@@ -75,6 +75,19 @@ int isLink(char * path, char ** output);
 
 FILE2 openFile (char * filename);
 
+int writeFile(FILE2 handle, char *buffer, int size);
+
+int readFile(FILE2 handle, char *buffer, int size);
+
+int truncateFile (FILE2 handle);
+
+int totalFileSize(FILE2 handle);
+
+int updateFileSize(FILE2 handle, DWORD newFileSize);
+
+int realFileSize (FILE2 handle);
+
+
 typedef struct diskf {
     FILE2 file;
     int currPointer;

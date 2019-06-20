@@ -364,8 +364,6 @@ int deleteEnt(int clusterDir, DIRENT2 record){
         return -1;
     }
 
-
-
     if(record.fileType != 0x03){
         FATbitmap[folderFind[i].firstCluster] = '0';
 
@@ -394,7 +392,6 @@ int deleteEnt(int clusterDir, DIRENT2 record){
                 FATbitmap[j] = '0';
             }
         }
-
 
         if (record.fileType == 0x02){
 
@@ -1051,5 +1048,270 @@ FILE2 openFile (char * filename){
     free(name);
     free(pathname);
     free(folderContent);
+
     return -1;
+}
+
+int writeFile(FILE2 handle, char * buffer, int size) {
+    int i = 0;
+    int fileNo;
+    int found = 0;
+    int remainingSize = size;
+    int bytesWritten = 0;
+    int currentPointerInCluster;
+    int currentCluster;
+    int nextCluster;
+
+    int clusterSize = superblock.clusterSize;
+
+    while(i < 10){
+        if (handle == openFiles[i].file) {
+            fileNo = i;
+            found = 1;
+            break;
+        }
+        i += 1;
+    }
+
+    if(!found) {
+        return -1;
+    }
+
+    currentPointerInCluster = openFiles[fileNo].currPointer;
+    nextCluster = openFiles[fileNo].clusterNo;
+    currentCluster = nextCluster;
+
+    FATread();
+
+    while(currentPointerInCluster >= clusterSize) {
+        nextCluster = FATnext[nextCluster];
+
+        if(nextCluster != -1) {
+            currentCluster = nextCluster;
+        }
+        currentPointerInCluster -= (clusterSize);
+    }
+
+    // Escreve primeiro cluster que o current pointer está
+    if((remainingSize + currentPointerInCluster) <= (clusterSize)) {
+        writeCluster(currentCluster,(unsigned char*)(buffer),currentPointerInCluster,size);
+        bytesWritten += size;
+        remainingSize -= size;
+    }
+    else {
+        writeCluster(currentCluster,(unsigned char*)(buffer),currentPointerInCluster,(clusterSize - currentPointerInCluster));
+        remainingSize -= (clusterSize - currentPointerInCluster);
+        bytesWritten += (clusterSize - currentPointerInCluster);
+
+    }
+
+    // Escreve nos clusters que já existem no arquivo
+    while(nextCluster != -1 && remainingSize > 0) {
+
+        nextCluster = FATnext[nextCluster];
+
+        if(nextCluster != -1) {
+            currentCluster = nextCluster;
+
+            if(remainingSize <= (clusterSize)){
+                writeCluster(currentCluster,(unsigned char*)(buffer + bytesWritten),0,remainingSize);
+                bytesWritten += remainingSize;
+                remainingSize -= remainingSize;
+            } else {
+                writeCluster(currentCluster,(unsigned char*)(buffer + bytesWritten),0,(clusterSize));
+                remainingSize -= (clusterSize);
+                bytesWritten += (clusterSize);
+            }
+        }
+    }
+
+    // Cria novos clusters e escreve no arquivo
+    while(remainingSize > 0) {
+
+        nextCluster = FindFreeCluster();
+        if(nextCluster < 2 || nextCluster > superblock.pLastBlock) // só pode escrever entre o root e o fim da partição
+            return -1;
+
+        if(remainingSize <= (clusterSize)){
+
+            writeCluster(nextCluster,(unsigned char*)(buffer + bytesWritten),0,remainingSize);
+
+            bytesWritten += remainingSize;
+            remainingSize -= remainingSize;
+        }
+        else {
+
+            writeCluster(nextCluster,(unsigned char*)(buffer + bytesWritten),0,(clusterSize));
+
+            currentCluster = nextCluster;
+            remainingSize -= (clusterSize);
+            bytesWritten += (clusterSize);
+        }
+
+        FATnext[currentCluster] = nextCluster;
+        FATbitmap[nextCluster] = '1';
+        FATwrite();
+    }
+
+    openFiles[fileNo].currPointer += bytesWritten;
+
+    if(totalFileSize(handle) != 0)
+        return -1;
+
+    return bytesWritten;
+}
+
+int totalFileSize(FILE2 handle){
+
+    int filesize;
+
+    //OBTENHO O TAMANHO REAL DO ARQUIVO -- OBS: AQUI TEM Q TER UM BUFFER ENORME PRA GARANTIR
+    filesize = realFileSize(handle);
+
+    if(filesize < 0){
+        return -1;
+    }
+
+    if(updateFileSize(handle,(DWORD)filesize) != 0){
+        return -1;
+    }
+
+
+    return 0;
+}
+
+int updateFileSize(FILE2 handle, DWORD newFileSize){
+
+    int found = 0;
+    int fileNo;
+    int j;
+    DIRENT2 newStruct;
+    DIRENT2* folderContent = malloc(superblock.clusterSize);
+    int folderSize = ( (superblock.clusterSize) / sizeof(DIRENT2) );
+    int i;
+    int foundinfolder = 0;
+    int count;
+    unsigned char *buffer = malloc(sizeof(unsigned char) * superblock.sectorSize * superblock.SectorsPerCluster);
+
+    //procura o arquivo pelo handle
+    for(j = 0; j < 10; j++){
+        if(openFiles[j].file == handle){
+            found=1;
+            fileNo=j;
+            break;
+        }
+
+    }
+    if(found == 0){
+        free(folderContent);
+        return -1;
+    }
+
+    //verifica o tamanho do arquivo com o nome dado;
+    folderContent = readDataClusterFolder(openFiles[fileNo].clusterDir);
+
+    for(i = 0; i < folderSize;i++){
+
+        if(folderContent[i].firstCluster == openFiles[fileNo].clusterNo){
+            newStruct.fileSize = newFileSize;
+            newStruct.firstCluster = openFiles[fileNo].clusterNo;
+            strcpy(newStruct.name,folderContent[i].name);
+            newStruct.fileType = folderContent[i].fileType;
+            foundinfolder = 1;
+            count = (i * sizeof(DIRENT2));
+
+            break;
+        }
+    }
+
+    if (!foundinfolder){
+        free(folderContent);
+        return -1;
+    }
+
+    memset(buffer,'\0', superblock.clusterSize);
+
+    memcpy(buffer, newStruct.name, 31);                                 // name
+    memcpy(buffer + 31, wordToLtlEnd(newStruct.fileType), 1);           // fileType
+    memcpy(buffer + 32, dwordToLtlEnd(newStruct.fileSize), 4);          // fileSize
+    memcpy(buffer + 36, dwordToLtlEnd(newStruct.firstCluster), 4);      // firstCluster
+
+    writeCluster(openFiles[fileNo].clusterDir, buffer, count, sizeof(DIRENT2));
+
+    free(folderContent);
+
+    return 0;
+}
+
+int realFileSize (FILE2 handle){
+
+    int found = 0;
+    int currentPointerInCluster;
+    int currentCluster;
+    int nextCluster;
+    int fileNo;
+    int j;
+    int i = 0;
+    unsigned char *prebuffer = malloc(superblock.clusterSize);
+
+    for(j = 0; j < 10; j++){
+        if(openFiles[j].file == handle){
+            found = 1;
+            fileNo = j;
+            break;
+        }
+
+    }
+    if(found == 0){
+        free(prebuffer);
+        return -1;
+    }
+
+    //atribuicao dos parametros do arquivo
+    currentPointerInCluster = 0;
+    currentCluster = openFiles[fileNo].clusterNo;
+
+    //le o cluster atual
+    readCluster(currentCluster, prebuffer);
+
+    while(currentCluster != -1 && currentCluster > 2 && currentCluster < superblock.pLastBlock){
+
+        //percorre o buffer até achar o final do arquivo ou do cluster, transferindo os dados para saida
+        while(currentPointerInCluster <  superblock.clusterSize && prebuffer[currentPointerInCluster] != '\0') {
+            currentPointerInCluster++;
+            i++;
+        }
+
+    //se ainda nao preencheu o tamanho descrito
+        FATread();
+
+        nextCluster = FATnext[currentCluster];
+        free(prebuffer);
+        prebuffer = malloc(superblock.clusterSize);
+
+        if(nextCluster != -1){
+            readCluster(nextCluster, prebuffer);
+        }
+
+        currentPointerInCluster = 0;
+        currentCluster = nextCluster;
+
+    }
+
+    free(prebuffer);
+
+    if(i == 0)
+        return -1;
+
+    return i;
+}
+
+int readFile(FILE2 handle, char *buffer, int size){
+
+    return 0;
+}
+
+int truncateFile (FILE2 handle){
+
+    return 0;
 }
